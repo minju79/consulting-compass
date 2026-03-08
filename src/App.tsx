@@ -4,6 +4,14 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
+import IndustryOverview from "./pages/IndustryOverview";
+import DesignGuide from "./pages/DesignGuide";
+import UiGuide from "./pages/UiGuide";
+import UxGuide from "./pages/UxGuide";
+import PageTemplates from "./pages/PageTemplates";
+import ContentGuide from "./pages/ContentGuide";
+import SeoGeo from "./pages/SeoGeo";
+import Checklist from "./pages/Checklist";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -16,7 +24,14 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="/industry-overview" element={<IndustryOverview />} />
+          <Route path="/design-guide" element={<DesignGuide />} />
+          <Route path="/ui-guide" element={<UiGuide />} />
+          <Route path="/ux-guide" element={<UxGuide />} />
+          <Route path="/page-templates" element={<PageTemplates />} />
+          <Route path="/content-guide" element={<ContentGuide />} />
+          <Route path="/seo-geo" element={<SeoGeo />} />
+          <Route path="/checklist" element={<Checklist />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
