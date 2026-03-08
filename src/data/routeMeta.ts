@@ -1,6 +1,6 @@
 import { industryConfig } from "./industryConfig";
 
-export type SchemaType = "WebSite" | "WebPage" | "CollectionPage" | "FAQPage" | "Article" | "ProfilePage" | "AboutPage";
+export type SchemaType = "WebSite" | "WebPage" | "CollectionPage" | "FAQPage" | "Article" | "ProfilePage" | "AboutPage" | "TechArticle";
 
 export interface RouteMeta {
   path: string;
@@ -249,7 +249,7 @@ export const routeMeta: Record<string, RouteMeta> = {
     ogType: "website",
     ogImage: OG_IMAGE,
     robots: "noindex, follow",
-    schemaType: "WebPage",
+    schemaType: "TechArticle",
     searchIntent: "신뢰 체계 — 증거 자산 우선순위와 배치 규칙",
     keywords: ["신뢰 증거", "proof", "대체 전략"],
     navTitle: "Proof System",

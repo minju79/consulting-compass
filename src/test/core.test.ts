@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import {
   analyzeBrief, emptyBrief, exampleBrief, generateBlueprints,
   exportBriefJson, importBriefJson, generateLovablePrompt,
@@ -10,6 +10,7 @@ import {
   fallbackMeta, getRoutesByGroup, getAdjacentRoutes, routeMeta,
 } from "@/data/routeMeta";
 import { industryConfig } from "@/data/industryConfig";
+import { applyPageMeta } from "@/hooks/usePageMeta";
 
 // ─── Route Meta ───
 
@@ -586,6 +587,137 @@ describe("system integration", () => {
     const validStatuses = ["보유", "부족", "비공개", "미입력", "검토 필요"];
     analysis.proofSummary.forEach((p) => {
       expect(validStatuses).toContain(p.status);
+    });
+  });
+});
+
+// ─── Meta Tag Application (DOM-level) ───
+
+describe("applyPageMeta DOM", () => {
+  beforeEach(() => {
+    document.title = "";
+    document.querySelectorAll('script[type="application/ld+json"]').forEach((el) => el.remove());
+    document.querySelectorAll('meta[property^="og:"]').forEach((el) => el.remove());
+    document.querySelectorAll('meta[name="robots"]').forEach((el) => el.remove());
+    document.querySelectorAll('meta[name="description"]').forEach((el) => el.remove());
+    document.querySelectorAll('meta[name^="twitter:"]').forEach((el) => el.remove());
+    document.querySelectorAll('link[rel="canonical"]').forEach((el) => el.remove());
+  });
+
+  it("sets document title", () => {
+    applyPageMeta(getRouteMeta("/"), "/");
+    expect(document.title).toBe(routeMeta["/"].title);
+  });
+
+  it("sets description meta", () => {
+    applyPageMeta(getRouteMeta("/design-guide"), "/design-guide");
+    const desc = document.querySelector('meta[name="description"]');
+    expect(desc?.getAttribute("content")).toBe(routeMeta["/design-guide"].description);
+  });
+
+  it("sets robots index for guide pages", () => {
+    applyPageMeta(getRouteMeta("/ui-guide"), "/ui-guide");
+    const robots = document.querySelector('meta[name="robots"]');
+    expect(robots?.getAttribute("content")).toContain("index");
+  });
+
+  it("sets robots noindex for tool pages", () => {
+    applyPageMeta(getRouteMeta("/client-brief"), "/client-brief");
+    const robots = document.querySelector('meta[name="robots"]');
+    expect(robots?.getAttribute("content")).toContain("noindex");
+  });
+
+  it("sets noindex nofollow for 404 fallback", () => {
+    applyPageMeta(fallbackMeta, "/404");
+    const robots = document.querySelector('meta[name="robots"]');
+    expect(robots?.getAttribute("content")).toBe("noindex, nofollow");
+  });
+
+  it("sets og:title", () => {
+    applyPageMeta(getRouteMeta("/ux-guide"), "/ux-guide");
+    const og = document.querySelector('meta[property="og:title"]');
+    expect(og?.getAttribute("content")).toBe(routeMeta["/ux-guide"].ogTitle);
+  });
+
+  it("sets canonical for guide pages", () => {
+    applyPageMeta(getRouteMeta("/content-guide"), "/content-guide");
+    const canonical = document.querySelector('link[rel="canonical"]');
+    expect(canonical?.getAttribute("href")).toContain("/content-guide");
+  });
+
+  it("removes canonical for 404", () => {
+    applyPageMeta(getRouteMeta("/"), "/");
+    expect(document.querySelector('link[rel="canonical"]')).toBeTruthy();
+    applyPageMeta(fallbackMeta, "/404");
+    expect(document.querySelector('link[rel="canonical"]')).toBeNull();
+  });
+
+  it("generates WebSite JSON-LD for homepage", () => {
+    applyPageMeta(getRouteMeta("/"), "/");
+    const script = document.getElementById("page-jsonld");
+    const data = JSON.parse(script?.textContent || "{}");
+    expect(data["@type"]).toBe("WebSite");
+    expect(data.potentialAction).toBeTruthy();
+  });
+
+  it("generates TechArticle JSON-LD for proof system", () => {
+    applyPageMeta(getRouteMeta("/proof-system"), "/proof-system");
+    const script = document.getElementById("page-jsonld");
+    const data = JSON.parse(script?.textContent || "{}");
+    expect(data["@type"]).toBe("TechArticle");
+    expect(data.proficiencyLevel).toBe("Expert");
+  });
+
+  it("generates Article JSON-LD with author for guides", () => {
+    applyPageMeta(getRouteMeta("/design-guide"), "/design-guide");
+    const script = document.getElementById("page-jsonld");
+    const data = JSON.parse(script?.textContent || "{}");
+    expect(data["@type"]).toBe("Article");
+    expect(data.author["@type"]).toBe("Organization");
+  });
+
+  it("generates CollectionPage JSON-LD for page-templates", () => {
+    applyPageMeta(getRouteMeta("/page-templates"), "/page-templates");
+    const script = document.getElementById("page-jsonld");
+    const data = JSON.parse(script?.textContent || "{}");
+    expect(data["@type"]).toBe("CollectionPage");
+  });
+
+  it("generates BreadcrumbList JSON-LD for sub-pages", () => {
+    applyPageMeta(getRouteMeta("/seo-geo"), "/seo-geo");
+    const script = document.getElementById("breadcrumb-jsonld");
+    const data = JSON.parse(script?.textContent || "{}");
+    expect(data["@type"]).toBe("BreadcrumbList");
+    expect(data.itemListElement.length).toBe(2);
+  });
+
+  it("generates Organization JSON-LD only on homepage", () => {
+    applyPageMeta(getRouteMeta("/"), "/");
+    const orgScript = document.getElementById("org-jsonld");
+    const data = JSON.parse(orgScript?.textContent || "{}");
+    expect(data["@type"]).toBe("Organization");
+  });
+
+  it("clears Organization JSON-LD on sub-pages", () => {
+    applyPageMeta(getRouteMeta("/"), "/");
+    applyPageMeta(getRouteMeta("/design-guide"), "/design-guide");
+    const orgScript = document.getElementById("org-jsonld");
+    expect(!orgScript || orgScript.textContent === "").toBe(true);
+  });
+
+  it("sets twitter card meta", () => {
+    applyPageMeta(getRouteMeta("/"), "/");
+    const card = document.querySelector('meta[name="twitter:card"]');
+    expect(card?.getAttribute("content")).toBe("summary_large_image");
+  });
+
+  it("all routes produce valid meta", () => {
+    getSortedRoutes().forEach((route) => {
+      document.querySelectorAll('meta[name="robots"]').forEach((el) => el.remove());
+      applyPageMeta(route, route.path);
+      expect(document.title).toBe(route.title);
+      const robots = document.querySelector('meta[name="robots"]');
+      expect(robots?.getAttribute("content")).toBeTruthy();
     });
   });
 });
