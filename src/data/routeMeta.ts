@@ -1,6 +1,6 @@
 import { industryConfig } from "./industryConfig";
 
-export type SchemaType = "WebSite" | "WebPage" | "CollectionPage" | "FAQPage" | "Article" | "ProfilePage" | "AboutPage";
+export type SchemaType = "WebSite" | "WebPage" | "CollectionPage" | "FAQPage" | "Article" | "ProfilePage" | "AboutPage" | "TechArticle";
 
 export interface RouteMeta {
   path: string;
