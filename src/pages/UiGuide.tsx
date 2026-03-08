@@ -60,14 +60,17 @@ const UiGuide = () => {
         description="컨설팅 업종 사이트에 필요한 핵심 UI 컴포넌트의 사용 목적, 배치 기준, 접근성 규칙을 정리합니다."
       />
 
-      <div className="rounded-lg border bg-accent/5 border-accent/20 p-4 mb-8">
-        <p className="text-sm text-foreground font-medium mb-1">📋 빠른 적용 포인트</p>
-        <ul className="text-xs text-muted-foreground space-y-1">
-          <li>• 모든 컴포넌트는 동일한 11개 항목으로 문서화되어 있습니다.</li>
-          <li>• <BadgeLabel type="required" /> 표시가 있는 컴포넌트는 대부분의 컨설팅 사이트에 필수입니다.</li>
-          <li>• <BadgeLabel type="proof">증거 필요</BadgeLabel> 표시가 있는 컴포넌트는 실제 자산이 있어야 사용 가능합니다.</li>
-        </ul>
-      </div>
+      <QuickSummary points={[
+        "모든 컴포넌트는 동일한 11개 항목으로 문서화되어 있습니다.",
+        "'필수' 표시 컴포넌트는 대부분의 컨설팅 사이트에 필수입니다.",
+        "'증거 필요' 컴포넌트는 실제 자산이 있어야 사용 가능합니다.",
+      ]} />
+
+      <InPageToc items={[
+        ...components.slice(0, 12).map((c) => ({ id: c.name.replace(/[\s/]/g, "-"), label: c.name })),
+        { id: "states", label: "인터랙션 상태 규칙" },
+        { id: "responsive", label: "반응형 동작 규칙" },
+      ]} />
 
       {components.map((comp) => (
         <SectionBlock key={comp.name} id={comp.name.replace(/[\s/]/g, "-")} title={comp.name}>

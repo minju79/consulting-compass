@@ -22,14 +22,13 @@ const PageTemplates = () => {
         description="실제 고객사 사이트에 바로 적용 가능한 페이지별 블록 시스템입니다. 필수/선택/조건부/금지 블록과 proof 요구사항을 제공합니다."
       />
 
-      <div className="rounded-lg border bg-accent/5 border-accent/20 p-4 mb-8">
-        <p className="text-sm text-foreground font-medium mb-1">📋 빠른 적용 포인트</p>
-        <ul className="text-xs text-muted-foreground space-y-1">
-          <li>• 각 템플릿은 <BadgeLabel type="required" /> <BadgeLabel type="optional" /> <BadgeLabel type="conditional" /> <BadgeLabel type="prohibited" /> 블록으로 구분됩니다.</li>
-          <li>• <BadgeLabel type="proof">증거 필요</BadgeLabel> 블록은 실제 자산이 있어야 사용합니다. 없으면 대체안을 확인하세요.</li>
-          <li>• 세부 컨설팅 유형별 변경점도 각 템플릿에 포함되어 있습니다.</li>
-        </ul>
-      </div>
+      <QuickSummary points={[
+        "각 템플릿은 필수 / 선택 / 조건부 / 금지 블록으로 구분됩니다.",
+        "'증거 필요' 블록은 실제 자산이 있어야 사용합니다. 없으면 대체안을 확인하세요.",
+        "세부 컨설팅 유형별 변경점도 각 템플릿에 포함되어 있습니다.",
+      ]} />
+
+      <InPageToc items={templateBlueprints.map((t) => ({ id: t.id, label: t.title }))} />
 
       {templateBlueprints.map((tmpl) => (
         <SectionBlock key={tmpl.id} id={tmpl.id} title={tmpl.title} description={tmpl.description}>
