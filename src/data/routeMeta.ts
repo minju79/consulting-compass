@@ -88,6 +88,7 @@ export const routeMeta: Record<string, RouteMeta> = {
     ogImage: OG_IMAGE,
     robots: "index, follow",
     schemaType: "Article",
+    searchIntent: "UI 구현 — 컴포넌트별 배치, 접근성, 반응형 기준",
     keywords: ["UI 컴포넌트", "접근성", "CTA"],
     navTitle: "UI Guide",
     navOrder: 3,
