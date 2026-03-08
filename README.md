@@ -4,8 +4,8 @@
 
 ## 시스템 구성
 
-1. **가이드 문서** — 업종 특성, 디자인, UI, UX, 콘텐츠, SEO/GEO
-2. **브리프 도구** — 고객사 정보 수집·정리 (localStorage 기반, JSON 내보내기/불러오기)
+1. **가이드 문서** — 업종 특성, 디자인, UI, UX, 콘텐츠, SEO/GEO, 페이지 템플릿, 체크리스트
+2. **브리프 도구** — 고객사 정보 수집·정리 (localStorage 기반, JSON 내보내기/불러오기, 자동 저장)
 3. **사이트 청사진** — 브리프 기반 공개용 사이트 구조 동적 생성
 4. **구현 규칙** — 브리프 기반 조건부 템플릿·CTA·블록 선택 엔진
 5. **신뢰 증거 체계** — 브리프 자산 상태 연동 proof 배치 규칙
@@ -20,7 +20,7 @@ Client Brief (입력) → analyzeBrief() → BriefAnalysis
                      → getProofFallbacks() → 대체 전략 목록
 ```
 
-- Brief는 `localStorage`에 자동 저장 (schema version 관리)
+- Brief는 `localStorage`에 자동 저장 (schema version 관리, migration 지원)
 - Site Blueprint, Implementation Rules, Proof System이 brief 데이터를 읽어 동적 결과 표시
 - Proof 부족 시 대체 전략이 청사진과 구현 규칙 양쪽에 반영
 
@@ -31,6 +31,7 @@ Client Brief (입력) → analyzeBrief() → BriefAnalysis
 - Framer Motion
 - React Router
 - cmdk (command palette)
+- Vitest (테스트)
 
 ## 시작하기
 
@@ -52,10 +53,10 @@ npm run lint       # 린트 검사
 ```
 src/
   lib/
-    brief.ts         # Brief 스키마, 저장, 분석, 청사진 생성, proof 대체 전략
+    brief.ts         # Brief 스키마, 저장, 분석, 청사진 생성, proof 대체, 프롬프트 생성
   data/
     industryConfig.ts  # 업종 설정 (교체 시 다른 업종 적용)
-    routeMeta.ts       # 라우트별 SEO 메타 + 네비게이션 + schemaType
+    routeMeta.ts       # 라우트별 SEO 메타 + 네비게이션 + schemaType + robots
     proofSystemRules.ts # 신뢰 증거 우선순위·배치 규칙
     templateBlueprints.ts # 페이지 블록 시스템 정의
     contentRules.ts    # 카피라이팅 공식, CTA, 금지 표현
@@ -64,13 +65,15 @@ src/
     uxRules.ts         # UX 규칙
     checklistDefinitions.ts # 체크리스트 정의
   components/
-    guide/           # SectionBlock, PageHeader, BadgeLabel, CopyBlock, ...
-    layout/          # AppLayout, AppSidebar (routeMeta 기반)
-    CommandSearch.tsx # Ctrl+K 커맨드 팔레트
+    guide/           # SectionBlock, PageHeader, BadgeLabel, CopyBlock, QuickSummary, InPageToc, ...
+    layout/          # AppLayout, AppSidebar (routeMeta + industryConfig 기반)
+    CommandSearch.tsx # Ctrl+K 커맨드 팔레트 (description, keywords, searchIntent 검색)
     ui/              # shadcn/ui
   pages/             # 13개 라우트 페이지 + NotFound
   hooks/
     usePageMeta.ts   # 라우트별 SEO 메타 자동 관리 + applyPageMeta 공유 유틸
+  test/
+    core.test.ts     # routeMeta, brief 분석, 청사진 생성, JSON import/export, save/load 통합 테스트
 ```
 
 ## 제작 워크플로우
@@ -93,3 +96,13 @@ src/
 - 404는 `noindex, nofollow` + canonical 제거
 - JSON-LD: Organization (홈), BreadcrumbList (전체), Article (가이드)
 - `applyPageMeta()` 공유 유틸로 NotFound 포함 전체 메타 일원화
+- og:image, twitter:image 모든 route에 적용
+
+## 페이지 공통 포맷
+
+모든 가이드 페이지는 다음 구조를 따릅니다:
+- PageHeader (배지 + H1 + 설명)
+- QuickSummary (빠른 적용 포인트 카드)
+- InPageToc (페이지 내 목차)
+- SectionBlock (각 섹션)
+- PageNavigation (이전/다음 페이지)

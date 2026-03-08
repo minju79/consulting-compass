@@ -3,6 +3,8 @@ import { PageHeader } from "@/components/guide/PageHeader";
 import { SectionBlock } from "@/components/guide/SectionBlock";
 import { TokenBlock } from "@/components/guide/TokenBlock";
 import { InfoList } from "@/components/guide/InfoList";
+import { QuickSummary } from "@/components/guide/QuickSummary";
+import { InPageToc } from "@/components/guide/InPageToc";
 import {
   brandToneKeywords, brandToneDescription,
   coreColors, surfaceColors, colorUsageRules,
@@ -10,6 +12,16 @@ import {
   imageGuidelines, iconGuidelines,
   prohibitedVisuals, layoutPrinciples,
 } from "@/data/designTokens";
+
+const tocItems = [
+  { id: "brand-tone", label: "브랜드 톤 정의" },
+  { id: "color-system", label: "컬러 시스템" },
+  { id: "typography", label: "타이포그래피" },
+  { id: "spacing", label: "간격·라운드·보더·그림자" },
+  { id: "imagery", label: "이미지·아이콘 스타일" },
+  { id: "dont", label: "금지 시각 표현" },
+  { id: "layout-principles", label: "레이아웃 원칙" },
+];
 
 const DesignGuide = () => {
   return (
@@ -19,6 +31,14 @@ const DesignGuide = () => {
         title="디자인 가이드"
         description="컨설팅 업종에 적합한 브랜드 톤, 컬러, 타이포그래피, 이미지 스타일, 레이아웃 원칙을 정의합니다."
       />
+
+      <QuickSummary points={[
+        "차분하고 신뢰감 있는 B2B 톤을 유지하세요. 과도한 애니메이션이나 비비드한 컬러를 피하세요.",
+        "타이포그래피는 Display(Plus Jakarta Sans) + Body(Noto Sans KR) 조합을 사용합니다.",
+        "라운드는 8px 이내, 여백은 넉넉하게, 정보 밀도를 적절히 유지하세요.",
+      ]} />
+
+      <InPageToc items={tocItems} />
 
       <SectionBlock id="brand-tone" title="브랜드 톤 정의">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -59,7 +79,6 @@ const DesignGuide = () => {
               </div>
             </div>
           </div>
-
           <div className="rounded-lg border bg-card p-5">
             <h4 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">Type Scale</h4>
             <div className="space-y-4">

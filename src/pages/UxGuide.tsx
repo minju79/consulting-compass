@@ -2,12 +2,28 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/guide/PageHeader";
 import { SectionBlock } from "@/components/guide/SectionBlock";
 import { InfoList } from "@/components/guide/InfoList";
+import { QuickSummary } from "@/components/guide/QuickSummary";
+import { InPageToc } from "@/components/guide/InPageToc";
 import {
   userJourneySteps, visitTypes, firstScreenRequirements,
   ctaPrinciples, trustPlacements, formStrategy,
   bounceFixPatterns, mobileUxPriorities, microcopyExamples,
   accessibilityRules, stateDesign,
 } from "@/data/uxRules";
+
+const tocItems = [
+  { id: "user-journey", label: "대표 사용자 여정" },
+  { id: "visit-types", label: "방문 목적별 UX 분기" },
+  { id: "first-screen", label: "첫 화면 필수 요소" },
+  { id: "cta-principles", label: "CTA 배치 원칙" },
+  { id: "trust-placement", label: "신뢰 요소 배치" },
+  { id: "form-strategy", label: "폼 최소화 전략" },
+  { id: "bounce-points", label: "이탈 지점과 개선" },
+  { id: "mobile-ux", label: "모바일 UX" },
+  { id: "microcopy", label: "마이크로카피" },
+  { id: "accessibility", label: "접근성" },
+  { id: "state-design", label: "상태 설계" },
+];
 
 const UxGuide = () => {
   return (
@@ -17,6 +33,14 @@ const UxGuide = () => {
         title="UX 가이드"
         description="컨설팅 사이트 방문자의 사용자 여정, CTA 배치 원칙, 신뢰 요소 위치, 전환 최적화, 접근성 및 상태 설계를 정리합니다."
       />
+
+      <QuickSummary points={[
+        "B2B 컨설팅 구매는 평균 2~4주 검토. 첫 방문 전환보다 재방문 설계가 중요합니다.",
+        "CTA는 가치 확인 후(사례/프로세스 아래), 행동 동사, 구체적 결과를 사용하세요.",
+        "폼 필드 4~6개 이내, 모바일에서 CTA 고정 바 또는 Sticky CTA를 활용하세요.",
+      ]} />
+
+      <InPageToc items={tocItems} />
 
       <SectionBlock id="user-journey" title="대표 사용자 여정">
         <div className="rounded-lg border bg-card p-5">
@@ -106,10 +130,11 @@ const UxGuide = () => {
       <SectionBlock id="microcopy" title="마이크로카피 원칙">
         <div className="rounded-lg border bg-card overflow-hidden">
           <table className="w-full text-sm">
+            <caption className="sr-only">마이크로카피 권장/비권장 예시</caption>
             <thead>
               <tr className="border-b bg-surface">
-                <th className="text-left p-3 font-semibold text-foreground text-xs">❌ 피하세요</th>
-                <th className="text-left p-3 font-semibold text-foreground text-xs">✅ 권장합니다</th>
+                <th scope="col" className="text-left p-3 font-semibold text-foreground text-xs">❌ 피하세요</th>
+                <th scope="col" className="text-left p-3 font-semibold text-foreground text-xs">✅ 권장합니다</th>
               </tr>
             </thead>
             <tbody>
@@ -124,7 +149,6 @@ const UxGuide = () => {
         </div>
       </SectionBlock>
 
-      {/* 접근성 */}
       <SectionBlock id="accessibility" title="접근성 규칙">
         <div className="space-y-3">
           {accessibilityRules.map((group) => (
@@ -136,7 +160,6 @@ const UxGuide = () => {
         </div>
       </SectionBlock>
 
-      {/* 상태 설계 */}
       <SectionBlock id="state-design" title="상태 설계">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="rounded-lg border bg-card p-5">

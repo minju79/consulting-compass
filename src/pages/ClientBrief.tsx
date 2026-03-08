@@ -67,8 +67,8 @@ const ClientBrief = () => {
 
   // Auto-save
   const doSave = useCallback((data: BriefData) => {
-    const ok = saveBrief(data);
-    if (!ok) toast.error("저장 실패 — localStorage를 확인하세요");
+    const result = saveBrief(data);
+    if (!result.success) toast.error("저장 실패 — localStorage를 확인하세요");
   }, []);
 
   useEffect(() => {
@@ -126,8 +126,8 @@ const ClientBrief = () => {
     e.target.value = "";
   };
   const handleManualSave = () => {
-    const ok = saveBrief(formData);
-    if (ok) toast.success("저장 완료");
+    const result = saveBrief(formData);
+    if (result.success) toast.success("저장 완료");
     else toast.error("저장 실패");
   };
 

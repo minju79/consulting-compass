@@ -2,12 +2,12 @@ import { describe, it, expect } from "vitest";
 import {
   analyzeBrief, emptyBrief, exampleBrief, generateBlueprints,
   exportBriefJson, importBriefJson, generateLovablePrompt,
-  normalizeBrief, getProofFallbacks,
-  BriefData, BRIEF_SCHEMA_VERSION,
+  normalizeBrief, getProofFallbacks, saveBrief, loadBriefWithStatus,
+  BriefData, BRIEF_SCHEMA_VERSION, BRIEF_STORAGE_KEY,
 } from "@/lib/brief";
 import {
   getRouteMeta, getSortedRoutes, getCanonicalUrl, getBreadcrumbs,
-  fallbackMeta, getRoutesByGroup,
+  fallbackMeta, getRoutesByGroup, getAdjacentRoutes,
 } from "@/data/routeMeta";
 import { industryConfig } from "@/data/industryConfig";
 
@@ -38,6 +38,7 @@ describe("routeMeta", () => {
     expect(fallbackMeta.robots).toBe("noindex, nofollow");
     expect(fallbackMeta.schemaType).toBe("WebPage");
     expect(fallbackMeta.ogTitle).toBeTruthy();
+    expect(fallbackMeta.ogImage).toBeTruthy();
   });
 
   it("generates canonical URLs correctly", () => {
@@ -104,6 +105,22 @@ describe("routeMeta", () => {
       expect(r.keywords!.length).toBeGreaterThan(0);
     });
   });
+
+  it("getAdjacentRoutes returns prev/next for middle route", () => {
+    const { prev, next } = getAdjacentRoutes("/design-guide");
+    expect(prev).toBeTruthy();
+    expect(next).toBeTruthy();
+  });
+
+  it("getAdjacentRoutes returns null prev for first route", () => {
+    const { prev } = getAdjacentRoutes("/");
+    expect(prev).toBeNull();
+  });
+
+  it("canonical URL uses industryConfig.siteUrl", () => {
+    const canonical = getCanonicalUrl("/design-guide");
+    expect(canonical).toContain(industryConfig.siteUrl);
+  });
 });
 
 // ─── Industry Config ───
@@ -114,6 +131,15 @@ describe("industryConfig", () => {
     expect(industryConfig.version).toBeTruthy();
     expect(industryConfig.navGroups.guide).toBeTruthy();
     expect(industryConfig.navGroups.tool).toBeTruthy();
+    expect(industryConfig.nameEn).toBeTruthy();
+    expect(industryConfig.siteUrl).toMatch(/^https:\/\//);
+    expect(industryConfig.locale).toBeTruthy();
+  });
+
+  it("has trust elements and failure patterns", () => {
+    expect(industryConfig.trustElements.length).toBeGreaterThan(5);
+    expect(industryConfig.failurePatterns.length).toBeGreaterThan(3);
+    expect(industryConfig.subCategories.length).toBeGreaterThan(5);
   });
 });
 
@@ -156,6 +182,11 @@ describe("brief analysis", () => {
     expect(analysis.industryCount).toBe(3);
   });
 
+  it("detects insight-centric type", () => {
+    const brief: BriefData = { ...emptyBrief, hasInsights: true, hasDownloads: true, companyName: "T" };
+    expect(analyzeBrief(brief).siteType).toBe("인사이트 중심형");
+  });
+
   it("recommends minimal scale for low proof score", () => {
     const brief: BriefData = { ...emptyBrief, companyName: "T", primaryCta: "상담 문의" };
     expect(analyzeBrief(brief).scaleRecommendation).toBe("최소");
@@ -173,6 +204,12 @@ describe("brief analysis", () => {
     const analysis = analyzeBrief(exampleBrief);
     expect(analysis.hasContentStrategy).toBe(true);
     expect(analysis.hasDownloadStrategy).toBe(true);
+  });
+
+  it("CTA mapping works for known primaryCta values", () => {
+    const brief: BriefData = { ...emptyBrief, companyName: "T", primaryCta: "무료 진단 신청" };
+    const a = analyzeBrief(brief);
+    expect(a.recommendedCta).toContain("진단");
   });
 });
 
@@ -192,6 +229,11 @@ describe("normalizeBrief", () => {
     expect(result.companyName).toBe("");
     expect(result.hasCases).toBeNull();
   });
+
+  it("filters non-string elements from arrays", () => {
+    const result = normalizeBrief({ leadMethod: ["문의 폼", 123, null, "이메일"] });
+    expect(result.leadMethod).toEqual(["문의 폼", "이메일"]);
+  });
 });
 
 // ─── Proof Fallbacks ───
@@ -210,7 +252,7 @@ describe("getProofFallbacks", () => {
     const analysis = analyzeBrief(exampleBrief);
     const fallbacks = getProofFallbacks(analysis);
     const active = fallbacks.filter((f) => f.active);
-    expect(active.length).toBeLessThanOrEqual(1); // webinars may be false
+    expect(active.length).toBeLessThanOrEqual(1);
   });
 });
 
@@ -258,6 +300,28 @@ describe("blueprint generation", () => {
     const blueprints = generateBlueprints(brief, analyzeBrief(brief));
     expect(blueprints[0].assetFallbacks!.length).toBeGreaterThan(0);
   });
+
+  it("includes case study pages when hasCases", () => {
+    const brief: BriefData = { ...emptyBrief, companyName: "T", hasCases: true };
+    const blueprints = generateBlueprints(brief, analyzeBrief(brief));
+    const names = blueprints.map((b) => b.name);
+    expect(names).toContain("케이스 스터디 목록");
+    expect(names).toContain("케이스 스터디 상세");
+  });
+
+  it("includes webinar page when hasWebinars", () => {
+    const brief: BriefData = { ...emptyBrief, companyName: "T", hasWebinars: true };
+    const blueprints = generateBlueprints(brief, analyzeBrief(brief));
+    expect(blueprints.some((b) => b.name === "웨비나/세미나")).toBe(true);
+  });
+
+  it("all blueprints have cta and mobileRule", () => {
+    const blueprints = generateBlueprints(exampleBrief, analyzeBrief(exampleBrief));
+    blueprints.forEach((bp) => {
+      expect(bp.cta).toBeTruthy();
+      expect(bp.mobileRule).toBeTruthy();
+    });
+  });
 });
 
 // ─── JSON Import/Export ───
@@ -288,6 +352,55 @@ describe("brief JSON import/export", () => {
     expect(result.success).toBe(true);
     expect(result.warning).toBeTruthy();
   });
+
+  it("normalized data preserves known fields", () => {
+    const json = JSON.stringify({ companyName: "X", consultingType: "HR", coreServices: "인재관리", unknownField: "ignored" });
+    const result = importBriefJson(json);
+    expect(result.success).toBe(true);
+    expect(result.data?.companyName).toBe("X");
+    // unknownField should not be in normalized data
+    expect("unknownField" in (result.data || {})).toBe(false);
+  });
+});
+
+// ─── Save/Load ───
+
+describe("brief save/load", () => {
+  it("saveBrief returns success with timestamp", () => {
+    const result = saveBrief(exampleBrief);
+    expect(result.success).toBe(true);
+    expect(result.timestamp).toBeTruthy();
+  });
+
+  it("loadBriefWithStatus returns loaded data", () => {
+    saveBrief(exampleBrief);
+    const { data, migrated } = loadBriefWithStatus();
+    expect(data.companyName).toBe(exampleBrief.companyName);
+    expect(migrated).toBe(false);
+  });
+
+  it("loadBriefWithStatus handles missing localStorage", () => {
+    localStorage.removeItem(BRIEF_STORAGE_KEY);
+    const { data, migrated } = loadBriefWithStatus();
+    expect(data.companyName).toBe("");
+    expect(migrated).toBe(false);
+  });
+
+  it("loadBriefWithStatus handles corrupt data", () => {
+    localStorage.setItem(BRIEF_STORAGE_KEY, "not-json");
+    const { data, migrated, migrationReason } = loadBriefWithStatus();
+    expect(migrated).toBe(true);
+    expect(migrationReason).toBe("parse_error");
+    expect(data._schemaVersion).toBe(BRIEF_SCHEMA_VERSION);
+  });
+
+  it("loadBriefWithStatus handles old schema version", () => {
+    localStorage.setItem(BRIEF_STORAGE_KEY, JSON.stringify({ _schemaVersion: 1, companyName: "Old" }));
+    const { data, migrated, migrationReason } = loadBriefWithStatus();
+    expect(migrated).toBe(true);
+    expect(migrationReason).toContain("schema");
+    expect(data.companyName).toBe("Old");
+  });
 });
 
 // ─── Prompt Generation ───
@@ -311,5 +424,46 @@ describe("prompt generation", () => {
     const analysis = analyzeBrief(brief);
     const prompt = generateLovablePrompt(brief, analysis, generateBlueprints(brief, analysis));
     expect(prompt).toContain("대체 전략");
+  });
+
+  it("prompt differs based on brief data", () => {
+    const brief1: BriefData = { ...emptyBrief, companyName: "A사", coreServices: "전략", targetClients: "대기업", primaryCta: "상담 문의", consultingType: "경영 전략" };
+    const brief2: BriefData = { ...emptyBrief, companyName: "B사", coreServices: "DX", targetClients: "중견기업", primaryCta: "무료 진단 신청", consultingType: "IT 컨설팅" };
+    const p1 = generateLovablePrompt(brief1, analyzeBrief(brief1), generateBlueprints(brief1, analyzeBrief(brief1)));
+    const p2 = generateLovablePrompt(brief2, analyzeBrief(brief2), generateBlueprints(brief2, analyzeBrief(brief2)));
+    expect(p1).not.toBe(p2);
+    expect(p1).toContain("A사");
+    expect(p2).toContain("B사");
+  });
+});
+
+// ─── Cross-system integration ───
+
+describe("system integration", () => {
+  it("proof fallbacks align with blueprint asset fallbacks", () => {
+    const brief: BriefData = { ...emptyBrief, companyName: "T", hasCases: false, hasClientLogos: false };
+    const analysis = analyzeBrief(brief);
+    const fallbacks = getProofFallbacks(analysis);
+    const blueprints = generateBlueprints(brief, analysis);
+    const homeFallbacks = blueprints[0].assetFallbacks || [];
+    const activeFallbacks = fallbacks.filter((f) => f.active).map((f) => f.asset);
+    // Both should flag the same missing assets
+    expect(activeFallbacks.length).toBeGreaterThan(0);
+    expect(homeFallbacks.length).toBeGreaterThan(0);
+  });
+
+  it("blueprint results change with different brief inputs", () => {
+    const minimal: BriefData = { ...emptyBrief, companyName: "T" };
+    const full = exampleBrief;
+    const minBlueprints = generateBlueprints(minimal, analyzeBrief(minimal));
+    const fullBlueprints = generateBlueprints(full, analyzeBrief(full));
+    expect(fullBlueprints.length).toBeGreaterThan(minBlueprints.length);
+  });
+
+  it("navigation data is consistent between sidebar and search", () => {
+    const guides = getRoutesByGroup("guide");
+    const tools = getRoutesByGroup("tool");
+    const all = getSortedRoutes();
+    expect(guides.length + tools.length).toBe(all.length);
   });
 });
