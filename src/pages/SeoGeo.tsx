@@ -3,6 +3,8 @@ import { PageHeader } from "@/components/guide/PageHeader";
 import { SectionBlock } from "@/components/guide/SectionBlock";
 import { InfoList } from "@/components/guide/InfoList";
 import { BadgeLabel } from "@/components/guide/BadgeLabel";
+import { QuickSummary } from "@/components/guide/QuickSummary";
+import { InPageToc } from "@/components/guide/InPageToc";
 import {
   metaTemplates,
   canonicalStrategy,
