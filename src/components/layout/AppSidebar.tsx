@@ -1,35 +1,24 @@
 import {
-  LayoutDashboard,
-  Building2,
-  Palette,
-  Component,
-  Users,
-  FileText,
-  PenTool,
-  Search,
-  CheckSquare,
-  ClipboardList,
-  Map,
-  Settings,
-  ShieldCheck,
+  LayoutDashboard, Building2, Palette, Component, Users, FileText,
+  PenTool, Search, CheckSquare, ClipboardList, Map, Settings, ShieldCheck,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { getRoutesByGroup } from "@/data/routeMeta";
+import { industryConfig } from "@/data/industryConfig";
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
+  Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
+  SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
 
 const iconMap: Record<string, React.ElementType> = {
   LayoutDashboard, Building2, Palette, Component, Users, FileText,
   PenTool, Search, CheckSquare, ClipboardList, Map, Settings, ShieldCheck,
+};
+
+const groupLabels = {
+  guide: "가이드",
+  tool: "제작 도구",
 };
 
 function NavGroup({ label, group, collapsed }: { label: string; group: "guide" | "tool"; collapsed: boolean }) {
@@ -76,16 +65,18 @@ export function AppSidebar() {
           {!collapsed && (
             <div>
               <h2 className="text-sm font-bold tracking-wide text-sidebar-primary-foreground opacity-90">
-                Consulting
+                {industryConfig.nameEn}
               </h2>
               <p className="text-xs text-sidebar-foreground/60 mt-0.5">
-                Web Guide System
+                {industryConfig.description.length > 30
+                  ? "Web Guide System"
+                  : industryConfig.description}
               </p>
             </div>
           )}
         </div>
-        <NavGroup label="가이드" group="guide" collapsed={collapsed} />
-        <NavGroup label="제작 도구" group="tool" collapsed={collapsed} />
+        <NavGroup label={groupLabels.guide} group="guide" collapsed={collapsed} />
+        <NavGroup label={groupLabels.tool} group="tool" collapsed={collapsed} />
       </SidebarContent>
     </Sidebar>
   );

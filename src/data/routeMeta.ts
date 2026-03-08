@@ -18,7 +18,6 @@ export interface RouteMeta {
   breadcrumbLabel: string;
 }
 
-const BASE = industryConfig.siteUrl;
 const OG_IMAGE = "/og-image.png";
 
 export const routeMeta: Record<string, RouteMeta> = {
@@ -48,6 +47,7 @@ export const routeMeta: Record<string, RouteMeta> = {
     ogType: "article",
     ogImage: OG_IMAGE,
     robots: "index, follow",
+    jsonLdType: "WebPage",
     searchIntent: "업종 이해 — 의사결정자 심리와 차별 요소 파악",
     navTitle: "Industry",
     navOrder: 1,
@@ -64,6 +64,7 @@ export const routeMeta: Record<string, RouteMeta> = {
     ogType: "article",
     ogImage: OG_IMAGE,
     robots: "index, follow",
+    jsonLdType: "WebPage",
     navTitle: "Design Guide",
     navOrder: 2,
     icon: "Palette",
@@ -79,6 +80,7 @@ export const routeMeta: Record<string, RouteMeta> = {
     ogType: "article",
     ogImage: OG_IMAGE,
     robots: "index, follow",
+    jsonLdType: "WebPage",
     navTitle: "UI Guide",
     navOrder: 3,
     icon: "Component",
@@ -94,6 +96,7 @@ export const routeMeta: Record<string, RouteMeta> = {
     ogType: "article",
     ogImage: OG_IMAGE,
     robots: "index, follow",
+    jsonLdType: "WebPage",
     navTitle: "UX Guide",
     navOrder: 4,
     icon: "Users",
@@ -109,6 +112,7 @@ export const routeMeta: Record<string, RouteMeta> = {
     ogType: "article",
     ogImage: OG_IMAGE,
     robots: "index, follow",
+    jsonLdType: "CollectionPage",
     navTitle: "Page Templates",
     navOrder: 5,
     icon: "FileText",
@@ -124,6 +128,7 @@ export const routeMeta: Record<string, RouteMeta> = {
     ogType: "article",
     ogImage: OG_IMAGE,
     robots: "index, follow",
+    jsonLdType: "WebPage",
     navTitle: "Content Guide",
     navOrder: 6,
     icon: "PenTool",
@@ -139,6 +144,8 @@ export const routeMeta: Record<string, RouteMeta> = {
     ogType: "article",
     ogImage: OG_IMAGE,
     robots: "index, follow",
+    jsonLdType: "WebPage",
+    searchIntent: "SEO/GEO 실행 가이드 — 메타, 구조화 데이터, AI 검색 최적화",
     navTitle: "SEO / GEO",
     navOrder: 7,
     icon: "Search",
@@ -154,6 +161,8 @@ export const routeMeta: Record<string, RouteMeta> = {
     ogType: "article",
     ogImage: OG_IMAGE,
     robots: "index, follow",
+    jsonLdType: "WebPage",
+    searchIntent: "제작 검수 — 단계별 체크 항목 확인",
     navTitle: "Checklist",
     navOrder: 8,
     icon: "CheckSquare",
@@ -169,6 +178,8 @@ export const routeMeta: Record<string, RouteMeta> = {
     ogType: "article",
     ogImage: OG_IMAGE,
     robots: "noindex, follow",
+    jsonLdType: "WebPage",
+    searchIntent: "브리프 입력 — 고객사 정보 수집 시작점",
     navTitle: "Client Brief",
     navOrder: 9,
     icon: "ClipboardList",
@@ -184,6 +195,8 @@ export const routeMeta: Record<string, RouteMeta> = {
     ogType: "article",
     ogImage: OG_IMAGE,
     robots: "noindex, follow",
+    jsonLdType: "WebPage",
+    searchIntent: "청사진 생성 — 브리프 기반 공개용 사이트 구조 출력",
     navTitle: "Site Blueprint",
     navOrder: 10,
     icon: "Map",
@@ -199,6 +212,8 @@ export const routeMeta: Record<string, RouteMeta> = {
     ogType: "article",
     ogImage: OG_IMAGE,
     robots: "noindex, follow",
+    jsonLdType: "WebPage",
+    searchIntent: "구현 규칙 — 브리프 기반 조건부 제작 지침 도출",
     navTitle: "Impl Rules",
     navOrder: 11,
     icon: "Settings",
@@ -214,6 +229,8 @@ export const routeMeta: Record<string, RouteMeta> = {
     ogType: "article",
     ogImage: OG_IMAGE,
     robots: "noindex, follow",
+    jsonLdType: "WebPage",
+    searchIntent: "신뢰 체계 — 증거 자산 우선순위와 배치 규칙",
     navTitle: "Proof System",
     navOrder: 12,
     icon: "ShieldCheck",
@@ -230,6 +247,7 @@ export const fallbackMeta: RouteMeta = {
   ogTitle: "페이지를 찾을 수 없습니다",
   ogDescription: "요청하신 페이지가 존재하지 않거나 이동되었습니다.",
   ogType: "website",
+  ogImage: "/og-image.png",
   robots: "noindex, nofollow",
   navTitle: "404",
   navOrder: 99,
@@ -240,7 +258,8 @@ export const fallbackMeta: RouteMeta = {
 
 export const getRouteMeta = (path: string): RouteMeta => routeMeta[path] || fallbackMeta;
 
-export const getCanonicalUrl = (path: string): string => `${BASE}${path === "/" ? "" : path}`;
+export const getCanonicalUrl = (path: string): string =>
+  `${industryConfig.siteUrl}${path === "/" ? "" : path}`;
 
 export const getSortedRoutes = () =>
   Object.values(routeMeta).sort((a, b) => a.navOrder - b.navOrder);
