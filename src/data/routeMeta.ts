@@ -124,6 +124,7 @@ export const routeMeta: Record<string, RouteMeta> = {
     ogImage: OG_IMAGE,
     robots: "index, follow",
     schemaType: "CollectionPage",
+    searchIntent: "페이지 설계 — 홈, 서비스, 사례, 팀, 문의 블록 구조",
     keywords: ["페이지 구조", "블록 시스템", "템플릿"],
     navTitle: "Page Templates",
     navOrder: 5,
