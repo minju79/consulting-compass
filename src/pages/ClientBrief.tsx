@@ -60,15 +60,27 @@ const briefFields: BriefField[] = [
 
 const ClientBrief = () => {
   const [formData, setFormData] = useState<BriefData>(() => loadBrief());
+  const [importError, setImportError] = useState<string | null>(null);
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "failed">("idle");
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout>>();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const categories = [...new Set(briefFields.map((f) => f.category))];
   const analysis = analyzeBrief(formData);
 
-  // Auto-save
-  const doSave = useCallback((data: BriefData) => {
+  // Auto-save with retry
+  const doSave = useCallback((data: BriefData, retryCount = 0) => {
+    setSaveState("saving");
     const result = saveBrief(data);
-    if (!result.success) toast.error("저장 실패 — localStorage를 확인하세요");
+    if (result.success) {
+      setSaveState("saved");
+      setTimeout(() => setSaveState("idle"), 2000);
+    } else if (retryCount < 2) {
+      // Retry up to 2 times
+      setTimeout(() => doSave(data, retryCount + 1), 500);
+    } else {
+      setSaveState("failed");
+      toast.error("자동 저장 실패 — localStorage를 확인하세요");
+    }
   }, []);
 
   useEffect(() => {
