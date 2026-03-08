@@ -186,7 +186,33 @@ const ClientBrief = () => {
         </button>
         <input ref={fileInputRef} type="file" accept=".json" onChange={handleFileChange} className="hidden" />
       </div>
-      {lastSaved && <p className="text-[10px] text-muted-foreground mb-6">마지막 저장: {lastSaved} · 자동 저장 활성</p>}
+
+      {/* Save state indicator */}
+      <div className="flex items-center gap-3 mb-4 text-[10px]">
+        {saveState === "saving" && <span className="text-muted-foreground">⏳ 저장 중...</span>}
+        {saveState === "saved" && <span className="text-accent">✓ 저장됨</span>}
+        {saveState === "failed" && (
+          <span className="text-destructive">
+            ✕ 저장 실패 —{" "}
+            <button onClick={handleRetrySave} className="underline hover:text-destructive/80">재시도</button>
+          </span>
+        )}
+        {lastSaved && <span className="text-muted-foreground">마지막 저장: {lastSaved} · 자동 저장 활성</span>}
+      </div>
+
+      {/* Import error visual state */}
+      {importError && (
+        <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 mb-6">
+          <div className="flex items-start gap-2">
+            <span className="text-destructive text-sm mt-0.5">✕</span>
+            <div>
+              <p className="text-sm font-medium text-destructive">JSON 불러오기 실패</p>
+              <p className="text-xs text-destructive/80 mt-1">{importError}</p>
+              <button onClick={() => setImportError(null)} className="text-xs text-destructive underline mt-2">닫기</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Summary Dashboard */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
