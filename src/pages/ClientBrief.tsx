@@ -143,8 +143,18 @@ const ClientBrief = () => {
   };
   const handleManualSave = () => {
     const result = saveBrief(formData);
-    if (result.success) toast.success("저장 완료");
-    else toast.error("저장 실패");
+    if (result.success) {
+      setSaveState("saved");
+      setTimeout(() => setSaveState("idle"), 2000);
+      toast.success("저장 완료");
+    } else {
+      setSaveState("failed");
+      toast.error("저장 실패");
+    }
+  };
+
+  const handleRetrySave = () => {
+    doSave(formData);
   };
 
   const lastSaved = formData._lastSaved ? new Date(formData._lastSaved).toLocaleString("ko-KR") : null;
