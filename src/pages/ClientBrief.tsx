@@ -60,15 +60,27 @@ const briefFields: BriefField[] = [
 
 const ClientBrief = () => {
   const [formData, setFormData] = useState<BriefData>(() => loadBrief());
+  const [importError, setImportError] = useState<string | null>(null);
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "failed">("idle");
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout>>();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const categories = [...new Set(briefFields.map((f) => f.category))];
   const analysis = analyzeBrief(formData);
 
-  // Auto-save
-  const doSave = useCallback((data: BriefData) => {
+  // Auto-save with retry
+  const doSave = useCallback((data: BriefData, retryCount = 0) => {
+    setSaveState("saving");
     const result = saveBrief(data);
-    if (!result.success) toast.error("저장 실패 — localStorage를 확인하세요");
+    if (result.success) {
+      setSaveState("saved");
+      setTimeout(() => setSaveState("idle"), 2000);
+    } else if (retryCount < 2) {
+      // Retry up to 2 times
+      setTimeout(() => doSave(data, retryCount + 1), 500);
+    } else {
+      setSaveState("failed");
+      toast.error("자동 저장 실패 — localStorage를 확인하세요");
+    }
   }, []);
 
   useEffect(() => {
@@ -102,7 +114,7 @@ const ClientBrief = () => {
     URL.revokeObjectURL(url);
     toast.success("JSON이 다운로드되었습니다");
   };
-  const handleImport = () => fileInputRef.current?.click();
+  const handleImport = () => { setImportError(null); fileInputRef.current?.click(); };
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -112,14 +124,18 @@ const ClientBrief = () => {
       if (result.success && result.data) {
         setFormData(result.data);
         saveBrief(result.data);
-        toast.success("브리프를 불러왔습니다");
+        setImportError(null);
+        toast.success(result.warning ? `브리프를 불러왔습니다 (${result.warning})` : "브리프를 불러왔습니다");
       } else {
         const msgs: Record<string, string> = {
-          invalid_json: "유효하지 않은 JSON 형식입니다",
-          invalid_shape: "브리프 데이터 형식이 올바르지 않습니다",
-          invalid_version: "지원하지 않는 스키마 버전입니다",
+          invalid_json: "유효하지 않은 JSON 형식입니다. 파일 내용을 확인하세요.",
+          invalid_shape: "브리프 데이터 형식이 올바르지 않습니다. 객체 형태여야 합니다.",
+          invalid_version: "지원하지 않는 스키마 버전입니다. 최신 포맷으로 내보내기 후 다시 시도하세요.",
+          empty_data: "브리프에 의미 있는 데이터가 없습니다. 회사명, 유형, 서비스 중 하나 이상을 입력해 주세요.",
         };
-        toast.error(msgs[result.error || ""] || "불러오기에 실패했습니다");
+        const errMsg = msgs[result.error || ""] || "불러오기에 실패했습니다";
+        setImportError(errMsg);
+        toast.error(errMsg);
       }
     };
     reader.readAsText(file);
@@ -127,8 +143,18 @@ const ClientBrief = () => {
   };
   const handleManualSave = () => {
     const result = saveBrief(formData);
-    if (result.success) toast.success("저장 완료");
-    else toast.error("저장 실패");
+    if (result.success) {
+      setSaveState("saved");
+      setTimeout(() => setSaveState("idle"), 2000);
+      toast.success("저장 완료");
+    } else {
+      setSaveState("failed");
+      toast.error("저장 실패");
+    }
+  };
+
+  const handleRetrySave = () => {
+    doSave(formData);
   };
 
   const lastSaved = formData._lastSaved ? new Date(formData._lastSaved).toLocaleString("ko-KR") : null;
@@ -160,7 +186,33 @@ const ClientBrief = () => {
         </button>
         <input ref={fileInputRef} type="file" accept=".json" onChange={handleFileChange} className="hidden" />
       </div>
-      {lastSaved && <p className="text-[10px] text-muted-foreground mb-6">마지막 저장: {lastSaved} · 자동 저장 활성</p>}
+
+      {/* Save state indicator */}
+      <div className="flex items-center gap-3 mb-4 text-[10px]">
+        {saveState === "saving" && <span className="text-muted-foreground">⏳ 저장 중...</span>}
+        {saveState === "saved" && <span className="text-accent">✓ 저장됨</span>}
+        {saveState === "failed" && (
+          <span className="text-destructive">
+            ✕ 저장 실패 —{" "}
+            <button onClick={handleRetrySave} className="underline hover:text-destructive/80">재시도</button>
+          </span>
+        )}
+        {lastSaved && <span className="text-muted-foreground">마지막 저장: {lastSaved} · 자동 저장 활성</span>}
+      </div>
+
+      {/* Import error visual state */}
+      {importError && (
+        <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 mb-6">
+          <div className="flex items-start gap-2">
+            <span className="text-destructive text-sm mt-0.5">✕</span>
+            <div>
+              <p className="text-sm font-medium text-destructive">JSON 불러오기 실패</p>
+              <p className="text-xs text-destructive/80 mt-1">{importError}</p>
+              <button onClick={() => setImportError(null)} className="text-xs text-destructive underline mt-2">닫기</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Summary Dashboard */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
