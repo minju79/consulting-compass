@@ -98,7 +98,7 @@ export const exampleBrief: BriefData = {
 };
 
 /** Normalize brief data: ensure all fields exist with correct types */
-function normalizeBrief(raw: Record<string, unknown>): BriefData {
+export function normalizeBrief(raw: Record<string, unknown>): BriefData {
   const result = { ...emptyBrief };
   for (const key of Object.keys(emptyBrief) as (keyof BriefData)[]) {
     const val = raw[key];
@@ -119,27 +119,49 @@ function normalizeBrief(raw: Record<string, unknown>): BriefData {
   return result;
 }
 
+export interface LoadBriefResult {
+  data: BriefData;
+  migrated: boolean;
+  migrationReason?: string;
+}
+
 export function loadBrief(): BriefData {
+  return loadBriefWithStatus().data;
+}
+
+export function loadBriefWithStatus(): LoadBriefResult {
   try {
     const raw = localStorage.getItem(BRIEF_STORAGE_KEY);
-    if (!raw) return { ...emptyBrief };
+    if (!raw) return { data: { ...emptyBrief }, migrated: false };
     const parsed = JSON.parse(raw);
-    if (parsed._schemaVersion !== BRIEF_SCHEMA_VERSION) {
-      return { ...emptyBrief };
+    if (typeof parsed !== "object" || !parsed) {
+      return { data: { ...emptyBrief }, migrated: true, migrationReason: "invalid_data" };
     }
-    return normalizeBrief(parsed);
+    if (parsed._schemaVersion !== BRIEF_SCHEMA_VERSION) {
+      // Attempt migration by normalizing
+      const normalized = normalizeBrief(parsed);
+      return { data: normalized, migrated: true, migrationReason: `schema_v${parsed._schemaVersion || "unknown"}_to_v${BRIEF_SCHEMA_VERSION}` };
+    }
+    return { data: normalizeBrief(parsed), migrated: false };
   } catch {
-    return { ...emptyBrief };
+    return { data: { ...emptyBrief }, migrated: true, migrationReason: "parse_error" };
   }
 }
 
-export function saveBrief(data: BriefData): boolean {
+export interface SaveResult {
+  success: boolean;
+  timestamp?: string;
+  error?: string;
+}
+
+export function saveBrief(data: BriefData): SaveResult {
   try {
-    const toSave = { ...data, _schemaVersion: BRIEF_SCHEMA_VERSION, _lastSaved: new Date().toISOString() };
+    const ts = new Date().toISOString();
+    const toSave = { ...data, _schemaVersion: BRIEF_SCHEMA_VERSION, _lastSaved: ts };
     localStorage.setItem(BRIEF_STORAGE_KEY, JSON.stringify(toSave));
-    return true;
-  } catch {
-    return false;
+    return { success: true, timestamp: ts };
+  } catch (e) {
+    return { success: false, error: e instanceof Error ? e.message : "unknown" };
   }
 }
 
@@ -150,7 +172,8 @@ export function exportBriefJson(data: BriefData): string {
 export interface ImportResult {
   success: boolean;
   data?: BriefData;
-  error?: "invalid_json" | "invalid_shape" | "invalid_version";
+  error?: "invalid_json" | "invalid_shape" | "invalid_version" | "empty_data";
+  warning?: string;
 }
 
 export function importBriefJson(json: string): ImportResult {
@@ -164,16 +187,18 @@ export function importBriefJson(json: string): ImportResult {
     return { success: false, error: "invalid_shape" };
   }
   const obj = parsed as Record<string, unknown>;
+  let warning: string | undefined;
+
   // Version check: warn but still import
   if (obj._schemaVersion && obj._schemaVersion !== BRIEF_SCHEMA_VERSION) {
-    // Try to normalize anyway
+    warning = `스키마 버전이 다릅니다 (v${obj._schemaVersion} → v${BRIEF_SCHEMA_VERSION}). 자동 변환되었습니다.`;
   }
   const normalized = normalizeBrief(obj);
   // Check if at least one meaningful field is filled
   if (!normalized.companyName && !normalized.consultingType && !normalized.coreServices) {
-    return { success: false, error: "invalid_shape" };
+    return { success: false, error: "empty_data" };
   }
-  return { success: true, data: normalized };
+  return { success: true, data: normalized, warning };
 }
 
 // ─── Brief Analysis Engine ───
@@ -184,6 +209,7 @@ export interface ProofStatus {
   id: string;
   label: string;
   status: "보유" | "부족" | "비공개" | "미입력" | "검토 필요";
+  strength: number; // 1-5
 }
 
 export interface BriefAnalysis {
@@ -195,11 +221,14 @@ export interface BriefAnalysis {
   proofScore: number;
   proofSummary: ProofStatus[];
   recommendedCta: string;
+  recommendedSecondaryCta: string;
   recommendedHero: string;
   scaleRecommendation: "최소" | "표준" | "풀";
   isBoutique: boolean;
   hasIndustryFocus: boolean;
   industryCount: number;
+  hasContentStrategy: boolean;
+  hasDownloadStrategy: boolean;
 }
 
 const REQUIRED_FIELDS: (keyof BriefData)[] = ["companyName", "consultingType", "coreServices", "targetClients", "primaryCta"];
@@ -218,6 +247,11 @@ function isFilled(val: unknown): boolean {
   if (Array.isArray(val)) return val.length > 0;
   return true;
 }
+
+const PROOF_STRENGTH: Record<string, number> = {
+  "case-study": 5, "metrics": 5, "client-logos": 4, "expert-profile": 4,
+  "insights": 3, "testimonial": 3, "downloads": 2, "webinars": 2,
+};
 
 export function analyzeBrief(brief: BriefData): BriefAnalysis {
   const filledAll = ALL_FIELDS.filter((k) => isFilled(brief[k])).length;
@@ -245,14 +279,16 @@ export function analyzeBrief(brief: BriefData): BriefAnalysis {
     let status: ProofStatus["status"] = "미입력";
     if (val === true) status = "보유";
     else if (val === false) status = "부족";
-    return { id: pf.id, label: pf.label, status };
+    return { id: pf.id, label: pf.label, status, strength: PROOF_STRENGTH[pf.id] || 1 };
   });
   const proofScore = proofSummary.filter((p) => p.status === "보유").length;
 
   // Derived flags
-  const industryCount = brief.industries ? brief.industries.split(",").filter(Boolean).length : 0;
+  const industryCount = brief.industries ? brief.industries.split(",").filter((s) => s.trim()).length : 0;
   const hasIndustryFocus = industryCount >= 2;
   const isBoutique = brief.projectScale === "소규모 (1~3개월)" || (brief.hasExpertProfiles === true && !hasIndustryFocus);
+  const hasContentStrategy = brief.hasInsights === true;
+  const hasDownloadStrategy = brief.hasDownloads === true;
 
   // Site type
   let siteType: SiteType = "리드 수집형";
@@ -285,6 +321,16 @@ export function analyzeBrief(brief: BriefData): BriefAnalysis {
   };
   const recommendedCta = ctaMap[brief.primaryCta] || "프로젝트 문의하기";
 
+  const secondaryCtaMap: Record<string, string> = {
+    "상담 문의": "서비스 자세히 보기",
+    "프로젝트 문의": "성공 사례 보기",
+    "무료 진단 신청": "진단 프로세스 보기",
+    "리포트 다운로드": "인사이트 더 보기",
+    "세미나 참가": "세미나 일정 보기",
+    "전화 상담": "서비스 자세히 보기",
+  };
+  const recommendedSecondaryCta = secondaryCtaMap[brief.primaryCta] || "서비스 자세히 보기";
+
   // Hero
   let recommendedHero = `[타겟]을 위한 [핵심 서비스] — [차별화]`;
   if (brief.hasMetrics) recommendedHero = `[성과 수치]를 만드는 [서비스명]`;
@@ -298,8 +344,9 @@ export function analyzeBrief(brief: BriefData): BriefAnalysis {
   return {
     completionRate, requiredCompletionRate, missingRequired,
     siteType, siteTypeReason, proofScore, proofSummary,
-    recommendedCta, recommendedHero, scaleRecommendation,
+    recommendedCta, recommendedSecondaryCta, recommendedHero, scaleRecommendation,
     isBoutique, hasIndustryFocus, industryCount,
+    hasContentStrategy, hasDownloadStrategy,
   };
 }
 
@@ -352,12 +399,12 @@ export function generateBlueprints(brief: BriefData, analysis: BriefAnalysis): P
       { name: "자동재생 비디오", status: "prohibited" },
     ],
     cta: analysis.recommendedCta,
-    secondaryCta: "서비스 자세히 보기",
+    secondaryCta: analysis.recommendedSecondaryCta,
     proofElements: proofOwned,
     seoPoints: ["H1: 핵심 서비스 키워드", "Organization JSON-LD", "FAQ 있으면 FAQPage 스키마", "og:type = website"],
     mobileRule: "서비스 카드 1컬럼, 성과 수치 2x2 그리드, Trust Strip 가로 스크롤",
     assetFallbacks: proofMissing.map((p) => `${p} 부족 → 대체 전략 필요`),
-    subtypeNotes: analysis.isBoutique ? "부티크: 전문가 섹션 강조, 서비스 통합" : undefined,
+    subtypeNotes: analysis.isBoutique ? "부티크: 전문가 섹션 강조, 서비스 통합" : brief.consultingType ? `${brief.consultingType}: 해당 분야 강조` : undefined,
     reviewClaims: brief.claimsToReview ? [brief.claimsToReview] : [],
   });
 
@@ -558,24 +605,48 @@ export function generateBlueprints(brief: BriefData, analysis: BriefAnalysis): P
   return pages;
 }
 
+// ─── Proof-aware helpers ───
+
+export function getProofFallbacks(analysis: BriefAnalysis): { asset: string; fallback: string; active: boolean }[] {
+  const fallbackMap: Record<string, string> = {
+    "케이스 스터디": "프로세스/방법론 블록으로 체계적 접근 방식 증명",
+    "고객사 로고": "'금융/제조/IT 산업 다수 고객사 보유' 등 산업군 기반 서술",
+    "성과 수치": "'N년 이상 경험', '다수의 성공적 프로젝트 수행' 등 정성적 표현",
+    "추천사": "케이스 스터디 성과 수치로 간접 증명",
+    "전문가 프로필": "이니셜 아바타 + 경력 요약 텍스트",
+    "인사이트/블로그": "FAQ 확장 + 서비스 설명 콘텐츠 강화",
+    "다운로드 리소스": "뉴스레터 구독 또는 상담 CTA로 대체",
+    "세미나/웨비나": "인사이트 콘텐츠 또는 사례 강화로 대체",
+  };
+  return analysis.proofSummary.map((p) => ({
+    asset: p.label,
+    fallback: fallbackMap[p.label] || "대체 전략 필요",
+    active: p.status === "부족",
+  }));
+}
+
 // ─── Prompt Generator ───
 
 export function generateLovablePrompt(brief: BriefData, analysis: BriefAnalysis, blueprints: PageBlueprint[]): string {
   const pageList = blueprints.map((p) => `- ${p.name} (${p.status})`).join("\n");
   const proofList = analysis.proofSummary.filter((p) => p.status === "보유").map((p) => p.label).join(", ");
   const missingProof = analysis.proofSummary.filter((p) => p.status === "부족").map((p) => p.label).join(", ");
+  const fallbacks = getProofFallbacks(analysis);
 
   const blockDetails = blueprints.map((bp) => {
-    const required = bp.blocks.filter((b) => b.status === "required").map((b) => b.name).join(", ");
+    const required = bp.blocks.filter((b) => b.status === "required").map((b) => `${b.name}${b.note ? ` (${b.note})` : ""}`).join(", ");
     const optional = bp.blocks.filter((b) => b.status === "optional").map((b) => b.name).join(", ");
+    const conditional = bp.blocks.filter((b) => b.status === "conditional").map((b) => `${b.name}${b.note ? ` — ${b.note}` : ""}`).join(", ");
     const prohibited = bp.blocks.filter((b) => b.status === "prohibited").map((b) => b.name).join(", ");
-    return `### ${bp.name}
+    return `### ${bp.name} (${bp.status})
 - 필수 블록: ${required || "없음"}
 - 선택 블록: ${optional || "없음"}
+- 조건부 블록: ${conditional || "없음"}
 - 금지 블록: ${prohibited || "없음"}
 - 핵심 CTA: "${bp.cta}"${bp.secondaryCta ? `\n- 보조 CTA: "${bp.secondaryCta}"` : ""}
+- 증거 요소: ${bp.proofElements.join(", ") || "없음"}
 - 모바일: ${bp.mobileRule}
-- SEO: ${bp.seoPoints.join(", ")}`;
+- SEO: ${bp.seoPoints.join(", ")}${bp.assetFallbacks && bp.assetFallbacks.length > 0 ? `\n- 자산 부족 대체: ${bp.assetFallbacks.join("; ")}` : ""}${bp.subtypeNotes ? `\n- 유형 참고: ${bp.subtypeNotes}` : ""}${bp.reviewClaims && bp.reviewClaims.length > 0 ? `\n- 검토 필요: ${bp.reviewClaims.join("; ")}` : ""}`;
   }).join("\n\n");
 
   return `# ${brief.companyName || "[회사명]"} 공개용 컨설팅 홈페이지 생성 프롬프트
@@ -592,16 +663,17 @@ export function generateLovablePrompt(brief: BriefData, analysis: BriefAnalysis,
 ## 사이트 유형: ${analysis.siteType}
 ${analysis.siteTypeReason}
 
-## 추천 규모: ${analysis.scaleRecommendation} 구조
+## 추천 규모: ${analysis.scaleRecommendation} 구조 (${blueprints.length}개 페이지)
 
-## 페이지 구성
-${pageList}
+## 핵심 CTA: "${analysis.recommendedCta}"
+## 보조 CTA: "${analysis.recommendedSecondaryCta}"
 
 ## 히어로 구조
 ${analysis.recommendedHero}
 ${brief.companyName ? `예시: "${brief.targetClients?.split(",")[0]?.trim() || "[타겟]"}을 위한 ${brief.coreServices?.split(",")[0]?.trim() || "[서비스]"} — ${brief.companyName}"` : ""}
 
-## 핵심 CTA: "${analysis.recommendedCta}"
+## 페이지 구성
+${pageList}
 
 ## 페이지별 블록 상세
 ${blockDetails}
@@ -611,19 +683,7 @@ ${proofList || "없음"}
 
 ## 부족한 증거 자산 (대체 전략 적용)
 ${missingProof || "없음 — 모두 보유"}
-${missingProof ? `\n대체 전략:\n${analysis.proofSummary.filter((p) => p.status === "부족").map((p) => {
-  const fallbacks: Record<string, string> = {
-    "케이스 스터디": "프로세스/방법론 블록으로 체계적 접근 증명",
-    "고객사 로고": "'금융/제조/IT 산업 다수 고객사 보유' 등 산업군 기반 서술",
-    "성과 수치": "'N년 이상 경험', 정성적 표현으로 대체",
-    "추천사": "케이스 스터디 성과 수치로 간접 증명",
-    "전문가 프로필": "이니셜 아바타 + 경력 텍스트",
-    "인사이트/블로그": "FAQ 확장 + 서비스 설명 콘텐츠 강화",
-    "다운로드 리소스": "뉴스레터 구독 또는 상담 CTA로 대체",
-    "세미나/웨비나": "생략 가능",
-  };
-  return `- ${p.label}: ${fallbacks[p.label] || "대체 전략 필요"}`;
-}).join("\n")}` : ""}
+${fallbacks.filter((f) => f.active).length > 0 ? `\n대체 전략:\n${fallbacks.filter((f) => f.active).map((f) => `- ${f.asset}: ${f.fallback}`).join("\n")}` : ""}
 
 ## 금지 표현
 ${brief.prohibitedExpressions || "업계 최고, 유일, 1위, 압도적"}
