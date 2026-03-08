@@ -257,6 +257,11 @@ const ClientBrief = () => {
         </div>
       )}
 
+      <InPageToc items={[
+        ...categories.map((cat) => ({ id: cat.replace(/\s/g, "-"), label: cat })),
+        { id: "completion", label: "카테고리별 입력 현황" },
+      ]} />
+
       {/* Summary Dashboard */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <div className="rounded-lg border bg-card p-5 col-span-1 md:col-span-2">
