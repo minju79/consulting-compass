@@ -2,6 +2,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/guide/PageHeader";
 import { SectionBlock } from "@/components/guide/SectionBlock";
 import { BadgeLabel } from "@/components/guide/BadgeLabel";
+import { InPageToc } from "@/components/guide/InPageToc";
 import { CopyBlock } from "@/components/guide/CopyBlock";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
