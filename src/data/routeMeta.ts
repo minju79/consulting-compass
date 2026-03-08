@@ -7,14 +7,19 @@ export interface RouteMeta {
   ogTitle: string;
   ogDescription: string;
   ogType: string;
+  ogImage?: string;
+  robots?: string;
   jsonLdType?: string;
   searchIntent?: string;
   navTitle: string;
   navOrder: number;
-  icon: string; // lucide icon name
+  icon: string;
+  group: "guide" | "tool";
+  breadcrumbLabel: string;
 }
 
 const BASE = industryConfig.siteUrl;
+const OG_IMAGE = "/og-image.png";
 
 export const routeMeta: Record<string, RouteMeta> = {
   "/": {
@@ -24,11 +29,15 @@ export const routeMeta: Record<string, RouteMeta> = {
     ogTitle: industryConfig.tagline,
     ogDescription: `${industryConfig.name} 업종 홈페이지 제작을 위한 내부 실무 기준서.`,
     ogType: "website",
+    ogImage: OG_IMAGE,
+    robots: "index, follow",
     jsonLdType: "WebSite",
     searchIntent: "내부용 대시보드 — 전체 가이드 탐색 진입점",
     navTitle: "Overview",
     navOrder: 0,
     icon: "LayoutDashboard",
+    group: "guide",
+    breadcrumbLabel: "홈",
   },
   "/industry-overview": {
     path: "/industry-overview",
@@ -37,10 +46,14 @@ export const routeMeta: Record<string, RouteMeta> = {
     ogTitle: `${industryConfig.name} 업종 특성 분석`,
     ogDescription: `${industryConfig.name} 사이트 방문자 심리, 신뢰 형성 요소, 전환 흐름 가이드.`,
     ogType: "article",
+    ogImage: OG_IMAGE,
+    robots: "index, follow",
     searchIntent: "업종 이해 — 의사결정자 심리와 차별 요소 파악",
     navTitle: "Industry",
     navOrder: 1,
     icon: "Building2",
+    group: "guide",
+    breadcrumbLabel: "업종 특성",
   },
   "/design-guide": {
     path: "/design-guide",
@@ -49,9 +62,13 @@ export const routeMeta: Record<string, RouteMeta> = {
     ogTitle: `${industryConfig.name} 디자인 가이드`,
     ogDescription: "컬러 시스템, 타이포그래피, 간격, 이미지 스타일 등 디자인 토큰 정의.",
     ogType: "article",
+    ogImage: OG_IMAGE,
+    robots: "index, follow",
     navTitle: "Design Guide",
     navOrder: 2,
     icon: "Palette",
+    group: "guide",
+    breadcrumbLabel: "디자인",
   },
   "/ui-guide": {
     path: "/ui-guide",
@@ -60,9 +77,13 @@ export const routeMeta: Record<string, RouteMeta> = {
     ogTitle: `${industryConfig.name} UI 가이드`,
     ogDescription: "헤더, 히어로, 카드, CTA, 폼 등 UI 컴포넌트 가이드.",
     ogType: "article",
+    ogImage: OG_IMAGE,
+    robots: "index, follow",
     navTitle: "UI Guide",
     navOrder: 3,
     icon: "Component",
+    group: "guide",
+    breadcrumbLabel: "UI",
   },
   "/ux-guide": {
     path: "/ux-guide",
@@ -71,9 +92,13 @@ export const routeMeta: Record<string, RouteMeta> = {
     ogTitle: `${industryConfig.name} UX 가이드`,
     ogDescription: "사용자 여정, 전환 최적화, 폼 전략, 모바일 UX 가이드.",
     ogType: "article",
+    ogImage: OG_IMAGE,
+    robots: "index, follow",
     navTitle: "UX Guide",
     navOrder: 4,
     icon: "Users",
+    group: "guide",
+    breadcrumbLabel: "UX",
   },
   "/page-templates": {
     path: "/page-templates",
@@ -82,20 +107,28 @@ export const routeMeta: Record<string, RouteMeta> = {
     ogTitle: "페이지 템플릿",
     ogDescription: "홈, 서비스, 사례, 인사이트, 문의 등 페이지 블록 시스템.",
     ogType: "article",
+    ogImage: OG_IMAGE,
+    robots: "index, follow",
     navTitle: "Page Templates",
     navOrder: 5,
     icon: "FileText",
+    group: "guide",
+    breadcrumbLabel: "페이지 템플릿",
   },
   "/content-guide": {
     path: "/content-guide",
     title: `콘텐츠 가이드 | ${industryConfig.tagline}`,
-    description: `${industryConfig.name} 업종에서 신뢰를 높이는 카피라이팅 원칙, 문장 톤, 템플릿, CTA 문구를 정리합니다.`,
+    description: `${industryConfig.name} 업종에서 신뢰를 높이는 카피라이팅 원칙, 문장 공식, 템플릿, CTA 문구를 정리합니다.`,
     ogTitle: `${industryConfig.name} 콘텐츠 가이드`,
     ogDescription: "증거 기반 카피라이팅, 문장 공식, CTA 라이브러리.",
     ogType: "article",
+    ogImage: OG_IMAGE,
+    robots: "index, follow",
     navTitle: "Content Guide",
     navOrder: 6,
     icon: "PenTool",
+    group: "guide",
+    breadcrumbLabel: "콘텐츠",
   },
   "/seo-geo": {
     path: "/seo-geo",
@@ -104,9 +137,13 @@ export const routeMeta: Record<string, RouteMeta> = {
     ogTitle: "SEO · GEO 가이드",
     ogDescription: "메타 태그, JSON-LD, sitemap, AI 검색 최적화 전략.",
     ogType: "article",
+    ogImage: OG_IMAGE,
+    robots: "index, follow",
     navTitle: "SEO / GEO",
     navOrder: 7,
     icon: "Search",
+    group: "guide",
+    breadcrumbLabel: "SEO/GEO",
   },
   "/checklist": {
     path: "/checklist",
@@ -115,9 +152,13 @@ export const routeMeta: Record<string, RouteMeta> = {
     ogTitle: "실무 체크리스트",
     ogDescription: "제작 전·디자인·UI·UX·모바일·SEO·런칭 전 체크리스트.",
     ogType: "article",
+    ogImage: OG_IMAGE,
+    robots: "index, follow",
     navTitle: "Checklist",
     navOrder: 8,
     icon: "CheckSquare",
+    group: "guide",
+    breadcrumbLabel: "체크리스트",
   },
   "/client-brief": {
     path: "/client-brief",
@@ -126,9 +167,13 @@ export const routeMeta: Record<string, RouteMeta> = {
     ogTitle: "고객사 브리프",
     ogDescription: "고객사 정보 수집 도구 — 서비스, 타겟, 자산, 브랜드 톤 정리.",
     ogType: "article",
+    ogImage: OG_IMAGE,
+    robots: "noindex, follow",
     navTitle: "Client Brief",
     navOrder: 9,
     icon: "ClipboardList",
+    group: "tool",
+    breadcrumbLabel: "브리프",
   },
   "/site-blueprint": {
     path: "/site-blueprint",
@@ -137,9 +182,13 @@ export const routeMeta: Record<string, RouteMeta> = {
     ogTitle: "사이트 청사진",
     ogDescription: "브리프 기반 사이트 구조 생성 — 유형 판별, 페이지, 섹션 도출.",
     ogType: "article",
+    ogImage: OG_IMAGE,
+    robots: "noindex, follow",
     navTitle: "Site Blueprint",
     navOrder: 10,
     icon: "Map",
+    group: "tool",
+    breadcrumbLabel: "청사진",
   },
   "/implementation-rules": {
     path: "/implementation-rules",
@@ -148,9 +197,13 @@ export const routeMeta: Record<string, RouteMeta> = {
     ogTitle: "구현 규칙",
     ogDescription: "조건별 템플릿 선택, CTA 우선순위, 자산 부족 시 대체 구조.",
     ogType: "article",
+    ogImage: OG_IMAGE,
+    robots: "noindex, follow",
     navTitle: "Impl Rules",
     navOrder: 11,
     icon: "Settings",
+    group: "tool",
+    breadcrumbLabel: "구현 규칙",
   },
   "/proof-system": {
     path: "/proof-system",
@@ -159,18 +212,41 @@ export const routeMeta: Record<string, RouteMeta> = {
     ogTitle: "신뢰 증거 체계",
     ogDescription: "신뢰 요소 우선순위, 페이지별 배치, 자산 부족 시 대체안.",
     ogType: "article",
+    ogImage: OG_IMAGE,
+    robots: "noindex, follow",
     navTitle: "Proof System",
     navOrder: 12,
     icon: "ShieldCheck",
+    group: "tool",
+    breadcrumbLabel: "증거 체계",
   },
 };
 
-export const getRouteMeta = (path: string): RouteMeta | undefined => routeMeta[path];
+// Fallback meta for 404 and unknown routes
+export const fallbackMeta: RouteMeta = {
+  path: "/404",
+  title: `페이지를 찾을 수 없습니다 | ${industryConfig.tagline}`,
+  description: "요청하신 페이지가 존재하지 않습니다.",
+  ogTitle: "페이지를 찾을 수 없습니다",
+  ogDescription: "요청하신 페이지가 존재하지 않거나 이동되었습니다.",
+  ogType: "website",
+  robots: "noindex, nofollow",
+  navTitle: "404",
+  navOrder: 99,
+  icon: "AlertTriangle",
+  group: "guide",
+  breadcrumbLabel: "404",
+};
 
-export const getCanonicalUrl = (path: string): string => `${industryConfig.siteUrl}${path === "/" ? "" : path}`;
+export const getRouteMeta = (path: string): RouteMeta => routeMeta[path] || fallbackMeta;
+
+export const getCanonicalUrl = (path: string): string => `${BASE}${path === "/" ? "" : path}`;
 
 export const getSortedRoutes = () =>
   Object.values(routeMeta).sort((a, b) => a.navOrder - b.navOrder);
+
+export const getRoutesByGroup = (group: "guide" | "tool") =>
+  getSortedRoutes().filter((r) => r.group === group);
 
 export const getAdjacentRoutes = (path: string) => {
   const sorted = getSortedRoutes();
@@ -179,4 +255,13 @@ export const getAdjacentRoutes = (path: string) => {
     prev: idx > 0 ? sorted[idx - 1] : null,
     next: idx < sorted.length - 1 ? sorted[idx + 1] : null,
   };
+};
+
+export const getBreadcrumbs = (path: string) => {
+  const meta = getRouteMeta(path);
+  const crumbs = [{ label: "홈", path: "/" }];
+  if (path !== "/") {
+    crumbs.push({ label: meta.breadcrumbLabel, path });
+  }
+  return crumbs;
 };

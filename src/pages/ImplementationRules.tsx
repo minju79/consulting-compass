@@ -2,160 +2,252 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/guide/PageHeader";
 import { SectionBlock } from "@/components/guide/SectionBlock";
 import { BadgeLabel } from "@/components/guide/BadgeLabel";
+import { CopyBlock } from "@/components/guide/CopyBlock";
 import { InfoList } from "@/components/guide/InfoList";
+import { useMemo } from "react";
+import { Link } from "react-router-dom";
+import { AlertTriangle, ArrowRight, Sparkles } from "lucide-react";
+import { loadBrief, saveBrief, exampleBrief, analyzeBrief, generateBlueprints, BriefData, BriefAnalysis } from "@/lib/brief";
+
+function DynamicResult({ label, value, fallback }: { label: string; value: string | undefined; fallback: string }) {
+  return (
+    <div className="flex items-start gap-2 text-xs">
+      <span className="text-muted-foreground font-medium w-32 shrink-0">{label}</span>
+      <span className="text-foreground">{value || fallback}</span>
+    </div>
+  );
+}
+
+function RuleCard({ condition, result, active }: { condition: string; result: string; active: boolean }) {
+  return (
+    <div className={`rounded-lg border p-4 transition-colors ${active ? "bg-accent/5 border-accent/30" : "bg-card"}`}>
+      <div className="flex items-center gap-2 mb-1">
+        {active && <BadgeLabel type="required">적용</BadgeLabel>}
+        <span className="text-xs text-muted-foreground">{condition}</span>
+      </div>
+      <p className={`text-sm ${active ? "text-accent font-medium" : "text-foreground"}`}>→ {result}</p>
+    </div>
+  );
+}
 
 const templateSelectionRules = [
-  { condition: "인바운드 영업 중심 + 사례 3건 이상", result: "케이스 스터디 중심형 + 리드 수집형 혼합" },
-  { condition: "부티크 컨설팅 + 전문가 3명 이하", result: "전문가 중심형" },
-  { condition: "산업 특화 + 2개 이상 산업 페이지 필요", result: "산업 특화형" },
-  { condition: "블로그/리포트 정기 발행 + SEO 유입 목표", result: "인사이트 중심형" },
-  { condition: "일반적인 종합 컨설팅", result: "리드 수집형 (기본)" },
-  { condition: "빠른 제작 + 낮은 예산", result: "최소 구조: 홈 + 서비스 + 문의 3페이지" },
+  { condition: "인바운드 영업 중심 + 사례 3건 이상", result: "케이스 스터디 중심형 + 리드 수집형 혼합", check: (b: BriefData) => b.salesMethod?.includes("인바운드") && b.hasCases },
+  { condition: "부티크 컨설팅 + 전문가 3명 이하", result: "전문가 중심형", check: (b: BriefData) => b.projectScale === "소규모 (1~3개월)" && b.hasExpertProfiles },
+  { condition: "산업 특화 + 2개 이상 산업 페이지 필요", result: "산업 특화형", check: (b: BriefData) => (b.industries?.split(",").length || 0) >= 2 },
+  { condition: "블로그/리포트 정기 발행 + SEO 유입 목표", result: "인사이트 중심형", check: (b: BriefData) => b.hasInsights && b.hasDownloads },
+  { condition: "일반적인 종합 컨설팅", result: "리드 수집형 (기본)", check: () => true },
+  { condition: "빠른 제작 + 낮은 예산", result: "최소 구조: 홈 + 서비스 + 문의 3페이지", check: () => false },
 ];
 
-const ctaSelectionRules = [
-  { condition: "B2B 고가치 프로젝트, 긴 의사결정", primaryCta: "프로젝트 문의하기", reason: "구체적이고 부담이 적은 표현" },
-  { condition: "무료 초기 진단 제공", primaryCta: "무료 진단 신청하기", reason: "가치 선제공으로 전환 장벽 낮춤" },
-  { condition: "리포트/가이드 리드젠", primaryCta: "무료 리포트 다운로드", reason: "즉각 가치 교환" },
-  { condition: "전화 상담 선호", primaryCta: "전문가 전화 상담 예약", reason: "직접 소통 선호 고객 타겟" },
+const ctaRules = [
+  { condition: "B2B 고가치 프로젝트", cta: "프로젝트 문의하기", check: (b: BriefData) => b.primaryCta === "프로젝트 문의" },
+  { condition: "무료 초기 진단 제공", cta: "무료 진단 신청하기", check: (b: BriefData) => b.primaryCta === "무료 진단 신청" },
+  { condition: "리포트/가이드 리드젠", cta: "무료 리포트 다운로드", check: (b: BriefData) => b.primaryCta === "리포트 다운로드" },
+  { condition: "전화 상담 선호", cta: "전문가 전화 상담 예약", check: (b: BriefData) => b.primaryCta === "전화 상담" },
 ];
 
 const proofFallbacks = [
-  { missing: "고객사 로고 비공개", alternative: "'금융/제조/IT 산업 다수 고객사 보유' 등 산업군 기반 서술", placement: "히어로 하단 텍스트 배지" },
-  { missing: "성과 수치 비공개", alternative: "'N년 이상 업계 경험', '다수의 성공적 프로젝트 수행' 등 정성적 표현", placement: "히어로 또는 서비스 섹션" },
-  { missing: "추천사 없음", alternative: "케이스 스터디 성과 수치로 간접 증명", placement: "사례 섹션 강화" },
-  { missing: "전문가 사진 없음", alternative: "이니셜 아바타 + 경력 요약 텍스트", placement: "팀 카드" },
-  { missing: "사례 0건", alternative: "프로세스/방법론 블록으로 체계적 접근 증명 + 산업 경험 서술", placement: "홈 중반 + 서비스 페이지" },
-  { missing: "블로그 미운영", alternative: "FAQ 확장 + 서비스 설명 콘텐츠 강화", placement: "각 페이지 FAQ" },
-  { missing: "다운로드 리소스 없음", alternative: "뉴스레터 구독 또는 상담 CTA로 대체", placement: "CTA 배너" },
-];
-
-const siteTypeDecisionRules = [
-  { condition: "사례 보유 + 수치 공개 가능", recommendation: "서비스 중심형 → 케이스 중심형으로 전환 권장" },
-  { condition: "전문가 3명 이상 + 각 전문 분야 뚜렷", recommendation: "전문가 소개 페이지 독립 운영" },
-  { condition: "산업 2개 이상 특화", recommendation: "산업별 랜딩 페이지 별도 제작" },
-  { condition: "인사이트 월 2회 이상 발행 가능", recommendation: "인사이트 허브 + SEO 랜딩 구조 추가" },
-  { condition: "예산 제한 + 빠른 런칭 필요", recommendation: "홈 + 서비스 + 문의 3페이지 최소 구조" },
-];
-
-const coreBlocks = [
-  "Hero (가치 제안 + CTA)",
-  "서비스 개요 (3~6개)",
-  "프로세스 / 방법론",
-  "CTA 배너 (최종 전환)",
-  "Footer (연락처, 링크)",
+  { missing: "고객사 로고 비공개", alt: "'금융/제조/IT 산업 다수 고객사 보유' 등 산업군 기반 서술", briefKey: "hasClientLogos" as keyof BriefData },
+  { missing: "성과 수치 비공개", alt: "'N년 이상 업계 경험', '다수의 성공적 프로젝트 수행' 등 정성적 표현", briefKey: "hasMetrics" as keyof BriefData },
+  { missing: "추천사 없음", alt: "케이스 스터디 성과 수치로 간접 증명", briefKey: "hasTestimonials" as keyof BriefData },
+  { missing: "전문가 사진 없음", alt: "이니셜 아바타 + 경력 요약 텍스트", briefKey: "hasExpertProfiles" as keyof BriefData },
+  { missing: "사례 0건", alt: "프로세스/방법론 블록으로 체계적 접근 증명 + 산업 경험 서술", briefKey: "hasCases" as keyof BriefData },
+  { missing: "블로그 미운영", alt: "FAQ 확장 + 서비스 설명 콘텐츠 강화", briefKey: "hasInsights" as keyof BriefData },
+  { missing: "다운로드 리소스 없음", alt: "뉴스레터 구독 또는 상담 CTA로 대체", briefKey: "hasDownloads" as keyof BriefData },
 ];
 
 const ImplementationRules = () => {
+  const brief = useMemo(() => loadBrief(), []);
+  const isEmpty = !brief.companyName && !brief.consultingType;
+  const analysis = useMemo(() => analyzeBrief(brief), [brief]);
+  const blueprints = useMemo(() => isEmpty ? [] : generateBlueprints(brief, analysis), [brief, analysis, isEmpty]);
+
+  const handleLoadExample = () => {
+    saveBrief(exampleBrief);
+    window.location.reload();
+  };
+
+  const requiredBlocks = blueprints.flatMap((bp) => bp.blocks.filter((b) => b.status === "required")).map((b) => b.name);
+  const uniqueRequired = [...new Set(requiredBlocks)];
+  const conditionalBlocks = blueprints.flatMap((bp) => bp.blocks.filter((b) => b.status === "conditional")).map((b) => `${b.name}${b.note ? ` (${b.note})` : ""}`);
+  const uniqueConditional = [...new Set(conditionalBlocks)];
+  const prohibitedBlocks = blueprints.flatMap((bp) => bp.blocks.filter((b) => b.status === "prohibited")).map((b) => b.name);
+  const uniqueProhibited = [...new Set(prohibitedBlocks)];
+
+  const activeProofFallbacks = proofFallbacks.filter((pf) => brief[pf.briefKey] === false);
+
+  // Build an instant implementation guide
+  const implGuide = `# ${brief.companyName || "[회사명]"} 구현 지침 요약
+
+## 사이트 유형: ${analysis.siteType}
+## 추천 규모: ${analysis.scaleRecommendation}
+## 핵심 CTA: ${analysis.recommendedCta}
+
+## 필수 블록
+${uniqueRequired.map((b) => `- ${b}`).join("\n")}
+
+## 조건부 블록
+${uniqueConditional.map((b) => `- ${b}`).join("\n") || "없음"}
+
+## 금지 블록
+${uniqueProhibited.map((b) => `- ${b}`).join("\n") || "없음"}
+
+## 증거 자산 대체 전략
+${activeProofFallbacks.map((pf) => `- ${pf.missing}: ${pf.alt}`).join("\n") || "모두 보유 — 대체 불필요"}
+`;
+
   return (
     <AppLayout>
-      <PageHeader
-        badge="Implementation Rules"
-        title="구현 규칙"
-        description="디자이너·기획자·개발자가 실제 제작 시 바로 적용할 수 있는 조건부 구현 규칙 문서입니다."
-      />
+      <PageHeader badge="Implementation Rules" title="구현 규칙" description="Client Brief 기반으로 실제 제작 시 바로 적용할 수 있는 조건부 구현 규칙입니다." />
 
-      <div className="rounded-lg border bg-accent/5 border-accent/20 p-4 mb-8">
-        <p className="text-sm text-foreground font-medium mb-1">📋 빠른 적용 포인트</p>
-        <ul className="text-xs text-muted-foreground space-y-1">
-          <li>• 모든 규칙은 "조건 → 결과" 형태로 정리되어 있어, Client Brief 결과를 대입하면 바로 판단할 수 있습니다.</li>
-          <li>• proof asset 부족 시 대체 전략을 반드시 확인하세요.</li>
-          <li>• 최소 구조에서도 반드시 유지해야 하는 핵심 블록이 있습니다.</li>
-        </ul>
-      </div>
+      {isEmpty && (
+        <div className="rounded-lg border-2 border-dashed bg-surface p-8 text-center mb-8">
+          <AlertTriangle className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
+          <p className="text-sm text-muted-foreground mb-4">브리프 데이터가 없어 기본 규칙만 표시됩니다.</p>
+          <div className="flex flex-wrap justify-center gap-3">
+            <Link to="/client-brief" className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90">브리프 작성하기 <ArrowRight className="h-4 w-4" /></Link>
+            <button onClick={handleLoadExample} className="inline-flex items-center gap-2 rounded-lg border bg-card px-4 py-2 text-sm font-semibold text-foreground hover:bg-secondary"><Sparkles className="h-4 w-4 text-accent" /> 예시로 보기</button>
+          </div>
+        </div>
+      )}
 
+      {!isEmpty && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <div className="rounded-lg border bg-accent/5 border-accent/20 p-4">
+            <span className="text-[10px] text-muted-foreground">사이트 유형</span>
+            <p className="text-sm font-bold text-accent">{analysis.siteType}</p>
+          </div>
+          <div className="rounded-lg border bg-card p-4">
+            <span className="text-[10px] text-muted-foreground">추천 규모</span>
+            <p className="text-sm font-bold text-foreground">{analysis.scaleRecommendation} 구조</p>
+          </div>
+          <div className="rounded-lg border bg-card p-4">
+            <span className="text-[10px] text-muted-foreground">필수 블록</span>
+            <p className="text-sm font-bold text-foreground">{uniqueRequired.length}개</p>
+          </div>
+          <div className="rounded-lg border bg-card p-4">
+            <span className="text-[10px] text-muted-foreground">대체 필요</span>
+            <p className="text-sm font-bold text-foreground">{activeProofFallbacks.length}개</p>
+          </div>
+        </div>
+      )}
+
+      {/* Template Selection */}
       <SectionBlock id="template-selection" title="템플릿 선택 규칙">
-        <div className="rounded-lg border bg-card overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b bg-surface">
-                <th className="text-left p-3 font-semibold text-foreground text-xs">조건</th>
-                <th className="text-left p-3 font-semibold text-foreground text-xs">추천 템플릿</th>
-              </tr>
-            </thead>
-            <tbody>
-              {templateSelectionRules.map((r) => (
-                <tr key={r.condition} className="border-b last:border-b-0">
-                  <td className="p-3 text-xs text-muted-foreground">{r.condition}</td>
-                  <td className="p-3 text-xs font-medium text-foreground">{r.result}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="space-y-2">
+          {templateSelectionRules.map((r) => (
+            <RuleCard key={r.condition} condition={r.condition} result={r.result} active={!isEmpty && r.check(brief)} />
+          ))}
         </div>
       </SectionBlock>
 
+      {/* CTA Selection */}
       <SectionBlock id="cta-selection" title="CTA 선택 규칙">
-        <div className="space-y-3">
-          {ctaSelectionRules.map((r) => (
-            <div key={r.condition} className="rounded-lg border bg-card p-4">
-              <p className="text-xs text-muted-foreground mb-1"><strong>조건:</strong> {r.condition}</p>
-              <p className="text-sm font-medium text-accent mb-1">→ "{r.primaryCta}"</p>
-              <p className="text-xs text-muted-foreground">{r.reason}</p>
-            </div>
+        <div className="space-y-2">
+          {ctaRules.map((r) => (
+            <RuleCard key={r.condition} condition={r.condition} result={r.cta} active={!isEmpty && r.check(brief)} />
           ))}
         </div>
       </SectionBlock>
 
-      <SectionBlock id="site-type-decisions" title="사이트 유형 분기 규칙">
-        <div className="space-y-3">
-          {siteTypeDecisionRules.map((r) => (
-            <div key={r.condition} className="rounded-lg border bg-card p-4">
-              <p className="text-xs text-muted-foreground mb-1"><strong>조건:</strong> {r.condition}</p>
-              <p className="text-sm text-foreground">{r.recommendation}</p>
-            </div>
-          ))}
-        </div>
-      </SectionBlock>
-
-      <SectionBlock id="proof-fallbacks" title="증거 자산 부족 시 대체 전략">
-        <div className="rounded-lg border bg-card overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b bg-surface">
-                <th className="text-left p-3 font-semibold text-foreground text-xs">부족한 자산</th>
-                <th className="text-left p-3 font-semibold text-foreground text-xs">대체 전략</th>
-                <th className="text-left p-3 font-semibold text-foreground text-xs hidden md:table-cell">배치 위치</th>
-              </tr>
-            </thead>
-            <tbody>
-              {proofFallbacks.map((f) => (
-                <tr key={f.missing} className="border-b last:border-b-0">
-                  <td className="p-3 text-xs font-medium text-foreground">{f.missing}</td>
-                  <td className="p-3 text-xs text-muted-foreground">{f.alternative}</td>
-                  <td className="p-3 text-xs text-muted-foreground hidden md:table-cell">{f.placement}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </SectionBlock>
-
-      <SectionBlock id="core-blocks" title="반드시 유지해야 하는 핵심 블록">
+      {/* Required Blocks */}
+      <SectionBlock id="required-blocks" title="필수 블록 결과">
         <div className="rounded-lg border bg-primary/5 border-primary/20 p-5">
-          <p className="text-xs text-muted-foreground mb-3">아래 블록은 예산이나 시간이 부족해도 반드시 포함해야 합니다.</p>
-          <div className="space-y-2">
-            {coreBlocks.map((block) => (
-              <div key={block} className="flex items-center gap-2">
+          <div className="flex flex-wrap gap-2">
+            {(uniqueRequired.length > 0 ? uniqueRequired : ["Hero", "서비스 개요", "프로세스", "CTA 배너", "Footer"]).map((b) => (
+              <div key={b} className="flex items-center gap-1.5">
                 <BadgeLabel type="required" />
-                <span className="text-sm text-foreground">{block}</span>
+                <span className="text-sm text-foreground">{b}</span>
               </div>
             ))}
           </div>
         </div>
       </SectionBlock>
 
+      {/* Conditional Blocks */}
+      {uniqueConditional.length > 0 && (
+        <SectionBlock id="conditional-blocks" title="조건부 블록">
+          <div className="space-y-2">
+            {uniqueConditional.map((b) => (
+              <div key={b} className="flex items-center gap-2">
+                <BadgeLabel type="conditional" />
+                <span className="text-sm text-foreground">{b}</span>
+              </div>
+            ))}
+          </div>
+        </SectionBlock>
+      )}
+
+      {/* Proof Fallbacks */}
+      <SectionBlock id="proof-fallbacks" title="증거 자산 부족 시 대체 전략">
+        <div className="rounded-lg border bg-card overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b bg-surface">
+                <th className="text-left p-3 text-xs font-semibold text-foreground">부족 자산</th>
+                <th className="text-left p-3 text-xs font-semibold text-foreground">대체 전략</th>
+                <th className="text-left p-3 text-xs font-semibold text-foreground w-16">상태</th>
+              </tr>
+            </thead>
+            <tbody>
+              {proofFallbacks.map((pf) => {
+                const needsFallback = brief[pf.briefKey] === false;
+                return (
+                  <tr key={pf.missing} className={`border-b last:border-b-0 ${needsFallback ? "bg-destructive/5" : ""}`}>
+                    <td className="p-3 text-xs font-medium text-foreground">{pf.missing}</td>
+                    <td className="p-3 text-xs text-muted-foreground">{pf.alt}</td>
+                    <td className="p-3">
+                      {needsFallback ? <BadgeLabel type="prohibited">대체 필요</BadgeLabel> : <BadgeLabel type="required">보유</BadgeLabel>}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </SectionBlock>
+
+      {/* Scale */}
+      <SectionBlock id="budget-scaling" title="예산별 구조 축소 규칙">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[
+            { scale: "최소", pages: ["홈페이지", "서비스 (통합)", "문의/상담"], active: analysis.scaleRecommendation === "최소" },
+            { scale: "표준", pages: ["홈", "서비스 (개별)", "사례 목록+상세", "회사 소개", "팀", "문의"], active: analysis.scaleRecommendation === "표준" },
+            { scale: "풀", pages: ["표준 + 산업별", "인사이트", "리포트 랜딩", "웨비나", "역량 매트릭스"], active: analysis.scaleRecommendation === "풀" },
+          ].map((item) => (
+            <div key={item.scale} className={`rounded-lg border p-5 ${item.active ? "bg-accent/5 border-accent/30" : "bg-card"}`}>
+              <div className="flex items-center gap-2 mb-2">
+                <h4 className="font-semibold text-sm text-foreground">{item.scale} 구조</h4>
+                {item.active && <BadgeLabel type="recommended">추천</BadgeLabel>}
+              </div>
+              <InfoList items={item.pages} />
+            </div>
+          ))}
+        </div>
+      </SectionBlock>
+
+      {/* Copy-ready implementation guide */}
+      {!isEmpty && (
+        <SectionBlock id="copy-guide" title="즉시 제작 지침 (복사용)">
+          <CopyBlock content={implGuide} label="구현 지침 요약" />
+        </SectionBlock>
+      )}
+
+      {/* Subtype rules */}
       <SectionBlock id="subtype-rules" title="세부 컨설팅 분야별 추가 섹션 규칙">
         <div className="space-y-3">
           {[
-            { subtype: "IT/DX", additions: ["기술 스택 블록", "파트너 기술 인증", "디지털 역량 매트릭스"] },
-            { subtype: "HR", additions: ["조직문화 진단 블록", "교육/워크숍 프로그램", "인재관리 성과"] },
-            { subtype: "마케팅", additions: ["캠페인 성과 대시보드", "채널 전략 블록", "데이터 분석 역량"] },
-            { subtype: "재무", additions: ["거래 실적", "인가/라이선스 블록", "규제 전문성"] },
-            { subtype: "ESG", additions: ["지속가능성 지표", "ESG 인증", "보고서 발간 이력"] },
+            { subtype: "IT/DX", additions: ["기술 스택 블록", "파트너 기술 인증", "디지털 역량 매트릭스"], active: brief.consultingType === "디지털 전환" || brief.consultingType === "IT 컨설팅" },
+            { subtype: "HR", additions: ["조직문화 진단 블록", "교육/워크숍 프로그램", "인재관리 성과"], active: brief.consultingType === "HR 컨설팅" },
+            { subtype: "마케팅", additions: ["캠페인 성과 대시보드", "채널 전략 블록", "데이터 분석 역량"], active: brief.consultingType === "마케팅 전략" },
+            { subtype: "재무", additions: ["거래 실적", "인가/라이선스 블록", "규제 전문성"], active: brief.consultingType === "재무 자문" || brief.consultingType === "M&A 자문" },
+            { subtype: "ESG", additions: ["지속가능성 지표", "ESG 인증", "보고서 발간 이력"], active: brief.consultingType === "ESG 컨설팅" },
           ].map((item) => (
-            <div key={item.subtype} className="rounded-lg border bg-card p-4">
-              <h4 className="font-semibold text-sm text-foreground mb-2">{item.subtype} 컨설팅</h4>
+            <div key={item.subtype} className={`rounded-lg border p-4 ${item.active ? "bg-accent/5 border-accent/30" : "bg-card"}`}>
+              <div className="flex items-center gap-2 mb-2">
+                <h4 className="font-semibold text-sm text-foreground">{item.subtype} 컨설팅</h4>
+                {item.active && <BadgeLabel type="recommended">해당</BadgeLabel>}
+              </div>
               <div className="flex flex-wrap gap-2">
                 {item.additions.map((a) => (
                   <span key={a} className="rounded-md border bg-surface px-2.5 py-1 text-xs text-muted-foreground">{a}</span>
@@ -166,7 +258,8 @@ const ImplementationRules = () => {
         </div>
       </SectionBlock>
 
-      <SectionBlock id="content-verification" title="콘텐츠 검증 우선순위">
+      {/* Content verification */}
+      <SectionBlock id="verification" title="콘텐츠 검증 우선순위">
         <div className="rounded-lg border bg-card p-5">
           <InfoList items={[
             "1순위: 성과 수치 (프로젝트 수, 성장률, ROI 등) — 반드시 출처 확인",
@@ -176,23 +269,6 @@ const ImplementationRules = () => {
             "5순위: 파트너십 — 현재 유효한 관계인지 확인",
             "'업계 최고', '유일', '1위' 등의 표현 → 반드시 근거 확보 또는 제거",
           ]} />
-        </div>
-      </SectionBlock>
-
-      <SectionBlock id="budget-scaling" title="예산별 구조 축소 규칙">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="rounded-lg border bg-card p-5">
-            <h4 className="font-semibold text-sm text-foreground mb-2">최소 구조 (3페이지)</h4>
-            <InfoList items={["홈페이지", "서비스 소개 (통합)", "문의/상담"]} />
-          </div>
-          <div className="rounded-lg border bg-card p-5">
-            <h4 className="font-semibold text-sm text-foreground mb-2">표준 구조 (6~8페이지)</h4>
-            <InfoList items={["홈", "서비스 (개별)", "사례 목록+상세", "회사 소개", "팀", "문의"]} />
-          </div>
-          <div className="rounded-lg border bg-card p-5">
-            <h4 className="font-semibold text-sm text-foreground mb-2">풀 구조 (10+ 페이지)</h4>
-            <InfoList items={["표준 구조 + 산업별", "인사이트/블로그", "리포트 랜딩", "웨비나", "역량 매트릭스"]} />
-          </div>
         </div>
       </SectionBlock>
     </AppLayout>

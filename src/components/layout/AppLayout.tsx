@@ -1,8 +1,9 @@
-import { ReactNode, useState } from "react";
+import { ReactNode } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { PageNavigation } from "@/components/guide/PageNavigation";
+import { CommandSearch } from "@/components/CommandSearch";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -14,7 +15,6 @@ export function AppLayout({ children }: AppLayoutProps) {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
-        {/* Skip link */}
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:text-sm focus:font-medium"
@@ -25,9 +25,10 @@ export function AppLayout({ children }: AppLayoutProps) {
         <div className="flex-1 flex flex-col min-w-0">
           <header role="banner" className="h-14 flex items-center border-b bg-card/80 backdrop-blur-sm sticky top-0 z-30 px-4">
             <SidebarTrigger className="mr-3" />
-            <span className="text-sm font-medium text-muted-foreground">
+            <span className="text-sm font-medium text-muted-foreground flex-1">
               컨설팅 업종 웹 제작 가이드
             </span>
+            <CommandSearch />
           </header>
           <main id="main-content" role="main" className="flex-1 overflow-auto">
             <div className="max-w-5xl mx-auto px-6 md:px-10 py-8 md:py-12">
