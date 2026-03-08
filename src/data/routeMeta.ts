@@ -142,6 +142,7 @@ export const routeMeta: Record<string, RouteMeta> = {
     ogImage: OG_IMAGE,
     robots: "index, follow",
     schemaType: "Article",
+    searchIntent: "콘텐츠 작성 — 증거 기반 카피, 문장 공식, CTA 라이브러리",
     keywords: ["카피라이팅", "CTA", "B2B 콘텐츠"],
     navTitle: "Content Guide",
     navOrder: 6,
