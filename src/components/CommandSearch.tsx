@@ -4,6 +4,7 @@ import {
   CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
 } from "@/components/ui/command";
 import { getRoutesByGroup } from "@/data/routeMeta";
+import { industryConfig } from "@/data/industryConfig";
 import { Search } from "lucide-react";
 
 const iconMap: Record<string, string> = {
@@ -11,8 +12,6 @@ const iconMap: Record<string, string> = {
   Users: "👥", FileText: "📄", PenTool: "✍️", Search: "🔍",
   CheckSquare: "✅", ClipboardList: "📋", Map: "🗺️", Settings: "⚙️", ShieldCheck: "🛡️",
 };
-
-const groupLabels = { guide: "가이드", tool: "제작 도구" };
 
 export function CommandSearch() {
   const [open, setOpen] = useState(false);
@@ -36,7 +35,7 @@ export function CommandSearch() {
       {routes.map((r) => (
         <CommandItem
           key={r.path}
-          value={`${r.navTitle} ${r.breadcrumbLabel} ${r.description} ${r.searchIntent || ""}`}
+          value={`${r.navTitle} ${r.breadcrumbLabel} ${r.description} ${r.searchIntent || ""} ${(r.keywords || []).join(" ")}`}
           onSelect={() => { navigate(r.path); setOpen(false); }}
         >
           <span className="mr-2">{iconMap[r.icon] || "📄"}</span>
@@ -72,8 +71,8 @@ export function CommandSearch() {
               <p className="text-xs text-muted-foreground mt-1">다른 키워드로 시도해 보세요.</p>
             </div>
           </CommandEmpty>
-          {renderGroup(guideRoutes, groupLabels.guide)}
-          {renderGroup(toolRoutes, groupLabels.tool)}
+          {renderGroup(guideRoutes, industryConfig.navGroups.guide)}
+          {renderGroup(toolRoutes, industryConfig.navGroups.tool)}
         </CommandList>
       </CommandDialog>
     </>

@@ -16,11 +16,6 @@ const iconMap: Record<string, React.ElementType> = {
   PenTool, Search, CheckSquare, ClipboardList, Map, Settings, ShieldCheck,
 };
 
-const groupLabels = {
-  guide: "가이드",
-  tool: "제작 도구",
-};
-
 function NavGroup({ label, group, collapsed }: { label: string; group: "guide" | "tool"; collapsed: boolean }) {
   const items = getRoutesByGroup(group);
   return (
@@ -68,15 +63,16 @@ export function AppSidebar() {
                 {industryConfig.nameEn}
               </h2>
               <p className="text-xs text-sidebar-foreground/60 mt-0.5">
-                {industryConfig.description.length > 30
-                  ? "Web Guide System"
-                  : industryConfig.description}
+                {industryConfig.shortTagline}
               </p>
+              <span className="text-[9px] text-sidebar-foreground/30 mt-1 block">
+                v{industryConfig.version}
+              </span>
             </div>
           )}
         </div>
-        <NavGroup label={groupLabels.guide} group="guide" collapsed={collapsed} />
-        <NavGroup label={groupLabels.tool} group="tool" collapsed={collapsed} />
+        <NavGroup label={industryConfig.navGroups.guide} group="guide" collapsed={collapsed} />
+        <NavGroup label={industryConfig.navGroups.tool} group="tool" collapsed={collapsed} />
       </SidebarContent>
     </Sidebar>
   );

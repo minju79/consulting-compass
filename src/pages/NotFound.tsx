@@ -1,59 +1,14 @@
 import { Link, useLocation } from "react-router-dom";
-import { ArrowLeft, Search, ClipboardList, Layers, CheckSquare, Home } from "lucide-react";
+import { Search, ClipboardList, Layers, CheckSquare, Home } from "lucide-react";
 import { useEffect } from "react";
-import { fallbackMeta, getCanonicalUrl } from "@/data/routeMeta";
-import { industryConfig } from "@/data/industryConfig";
+import { fallbackMeta } from "@/data/routeMeta";
+import { applyPageMeta } from "@/hooks/usePageMeta";
 
 const NotFound = () => {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    const meta = fallbackMeta;
-    document.title = meta.title;
-
-    const setMeta = (attr: string, attrVal: string, content: string) => {
-      let el = document.querySelector(`meta[${attr}="${attrVal}"]`) as HTMLMetaElement | null;
-      if (!el) {
-        el = document.createElement("meta");
-        el.setAttribute(attr, attrVal);
-        document.head.appendChild(el);
-      }
-      el.setAttribute("content", content);
-    };
-
-    setMeta("name", "description", meta.description);
-    setMeta("name", "robots", "noindex, nofollow");
-    setMeta("property", "og:title", meta.ogTitle);
-    setMeta("property", "og:description", meta.ogDescription);
-    setMeta("property", "og:type", "website");
-    setMeta("property", "og:url", getCanonicalUrl(pathname));
-    setMeta("property", "og:locale", industryConfig.locale);
-    setMeta("name", "twitter:card", "summary");
-    setMeta("name", "twitter:title", meta.ogTitle);
-    setMeta("name", "twitter:description", meta.ogDescription);
-
-    // Remove canonical for 404
-    const link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
-    if (link) link.remove();
-
-    // Minimal JSON-LD
-    let ldScript = document.getElementById("page-jsonld") as HTMLScriptElement | null;
-    if (!ldScript) {
-      ldScript = document.createElement("script");
-      ldScript.id = "page-jsonld";
-      ldScript.type = "application/ld+json";
-      document.head.appendChild(ldScript);
-    }
-    ldScript.textContent = JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "WebPage",
-      name: meta.ogTitle,
-      description: meta.ogDescription,
-    });
-
-    // Remove breadcrumb JSON-LD on 404
-    const bcScript = document.getElementById("breadcrumb-jsonld");
-    if (bcScript) bcScript.textContent = "";
+    applyPageMeta(fallbackMeta, pathname);
   }, [pathname]);
 
   return (

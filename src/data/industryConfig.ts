@@ -4,10 +4,18 @@ export const industryConfig = {
   name: "컨설팅",
   nameEn: "Consulting",
   tagline: "컨설팅 업종 웹사이트 제작 가이드",
+  shortTagline: "Web Guide System",
   description: "디자이너, 기획자, 개발자가 컨설팅 업종 홈페이지를 빠르고 일관되게 제작하기 위한 내부 기준서",
   siteUrl: "https://consulting-guide.lovable.app",
   locale: "ko_KR",
   lang: "ko",
+  version: "2.1.0",
+
+  // Navigation labels
+  navGroups: {
+    guide: "가이드",
+    tool: "제작 도구",
+  },
 
   // Visitor psychology
   visitorPriorities: [
