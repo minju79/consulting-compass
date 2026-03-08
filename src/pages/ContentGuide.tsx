@@ -2,6 +2,24 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/guide/PageHeader";
 import { SectionBlock } from "@/components/guide/SectionBlock";
 import { InfoList } from "@/components/guide/InfoList";
+import { BadgeLabel } from "@/components/guide/BadgeLabel";
+import {
+  toneDirections,
+  abstractToConcreteExamples,
+  claimEvidenceFormulas,
+  heroFormulas,
+  serviceIntroTemplates,
+  caseStudyTemplates,
+  expertProfileTemplates,
+  industryProblemTemplates,
+  insightTitleFormulas,
+  faqWritingRules,
+  ctaLibrary,
+  noMetricsAlternatives,
+  prohibitedExpressions,
+  numberDisplayRules,
+  avoidSentences,
+} from "@/data/contentRules";
 
 const ContentGuide = () => {
   return (
@@ -9,37 +27,35 @@ const ContentGuide = () => {
       <PageHeader
         badge="Content & Copy"
         title="콘텐츠 가이드"
-        description="컨설팅 업종에서 신뢰를 높이는 카피라이팅 원칙, 문장 톤, 템플릿, CTA 문구를 정리합니다."
+        description="컨설팅 업종에서 신뢰를 높이는 증거 기반 카피라이팅 원칙, 문장 공식, 템플릿, CTA 라이브러리를 정리합니다."
       />
 
+      {/* 빠른 적용 포인트 */}
+      <div className="rounded-lg border bg-accent/5 border-accent/20 p-4 mb-8">
+        <p className="text-sm text-foreground font-medium mb-1">📋 빠른 적용 포인트</p>
+        <ul className="text-xs text-muted-foreground space-y-1">
+          <li>• 모든 주장에는 반드시 근거(수치, 사례, 프로세스)를 연결하세요.</li>
+          <li>• 예시 데이터는 반드시 <BadgeLabel type="proof">예시 데이터</BadgeLabel> 표기를 하세요.</li>
+          <li>• 금지 표현 목록을 확인하고, 검증 불가한 표현은 사용하지 마세요.</li>
+        </ul>
+      </div>
+
+      {/* 톤 */}
       <SectionBlock id="tone" title="컨설팅 업종의 문장 톤">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="rounded-lg border bg-card p-5">
             <h4 className="font-semibold text-sm text-foreground mb-3">✓ 지향하는 톤</h4>
-            <InfoList items={[
-              "명확하고 직접적인 서술",
-              "전문적이지만 읽기 쉬운 문장",
-              "데이터와 근거 기반 주장",
-              "문제 → 해결 → 성과 구조",
-              "자신감 있지만 겸손한 어조",
-              "구체적 행동을 유도하는 문장",
-            ]} />
+            <InfoList items={toneDirections.positive} />
           </div>
           <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-5">
             <h4 className="font-semibold text-sm text-foreground mb-3">✕ 지양하는 톤</h4>
-            <InfoList items={[
-              "'혁신적', '선도적', '글로벌' 등 공허한 수식어 남발",
-              "과도하게 감성적이거나 친근한 어조",
-              "경쟁사를 직접 비교하거나 폄하",
-              "출처 없는 통계나 과장된 수치",
-              "지나치게 기술적인 전문 용어",
-              "내부 용어를 외부 고객에게 그대로 사용",
-            ]} />
+            <InfoList items={toneDirections.negative} />
           </div>
         </div>
       </SectionBlock>
 
-      <SectionBlock id="abstraction-rule" title="추상적 표현을 줄이는 규칙">
+      {/* 추상→구체 */}
+      <SectionBlock id="abstraction-rule" title="추상적 표현을 구체화하는 규칙">
         <div className="rounded-lg border bg-card overflow-hidden">
           <table className="w-full text-sm">
             <thead>
@@ -49,16 +65,10 @@ const ContentGuide = () => {
               </tr>
             </thead>
             <tbody>
-              {[
-                ["비즈니스 성장을 지원합니다", "매출 20% 성장을 위한 전략 수립부터 실행까지 (예시 수치)"],
-                ["혁신적인 솔루션을 제공합니다", "데이터 기반 의사결정 체계를 구축합니다"],
-                ["글로벌 역량을 보유하고 있습니다", "12개국 200+ 프로젝트 수행 경험 (예시 수치)"],
-                ["고객 중심의 접근 방식", "고객사 의사결정자와 주 1회 진행 상황을 공유합니다"],
-                ["최고의 전문가가 함께합니다", "평균 12년 경력의 산업별 전문 컨설턴트가 담당합니다 (예시)"],
-              ].map(([bad, good]) => (
-                <tr key={bad} className="border-b last:border-b-0">
-                  <td className="p-3 text-muted-foreground text-xs">{bad}</td>
-                  <td className="p-3 text-foreground text-xs">{good}</td>
+              {abstractToConcreteExamples.map((item) => (
+                <tr key={item.bad} className="border-b last:border-b-0">
+                  <td className="p-3 text-muted-foreground text-xs">{item.bad}</td>
+                  <td className="p-3 text-foreground text-xs">{item.good}</td>
                 </tr>
               ))}
             </tbody>
@@ -66,6 +76,22 @@ const ContentGuide = () => {
         </div>
       </SectionBlock>
 
+      {/* 주장+근거 공식 */}
+      <SectionBlock id="claim-evidence" title="주장과 근거를 연결하는 문장 공식">
+        <div className="space-y-3">
+          {claimEvidenceFormulas.map((item) => (
+            <div key={item.label} className="rounded-lg border bg-card p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <BadgeLabel type="required">{item.label}</BadgeLabel>
+              </div>
+              <p className="text-xs font-mono text-accent mb-2">{item.formula}</p>
+              <p className="text-xs text-muted-foreground italic">{item.example}</p>
+            </div>
+          ))}
+        </div>
+      </SectionBlock>
+
+      {/* PSR 구조 */}
       <SectionBlock id="psr-structure" title="문제 → 해결 → 성과 서술 구조">
         <div className="rounded-lg border bg-accent/5 border-accent/20 p-5">
           <div className="space-y-4 text-sm">
@@ -85,36 +111,10 @@ const ContentGuide = () => {
         </div>
       </SectionBlock>
 
-      <SectionBlock id="service-template" title="서비스 소개 문장 템플릿">
-        <div className="rounded-lg border bg-card p-5 space-y-3 text-sm">
-          <p className="text-muted-foreground">
-            <strong className="text-foreground">공식:</strong> [타겟 고객]이 [직면하는 과제]를 [접근 방식]으로 해결하여 [기대 성과]를 달성할 수 있도록 지원합니다.
-          </p>
-          <p className="text-muted-foreground italic">
-            예: "중견기업이 디지털 전환 과정에서 겪는 조직 저항을 변화 관리 프레임워크로 해결하여, 전환 프로젝트 성공률을 높일 수 있도록 지원합니다."
-          </p>
-        </div>
-      </SectionBlock>
-
-      <SectionBlock id="case-template" title="사례 소개 문장 템플릿">
-        <div className="rounded-lg border bg-card p-5 space-y-3 text-sm">
-          <p className="text-muted-foreground">
-            <strong className="text-foreground">공식:</strong> [산업/규모]의 고객사가 [과제]를 해결하기 위해 [접근 방식]을 적용하여, [기간] 내 [구체적 성과]를 달성했습니다.
-          </p>
-          <p className="text-muted-foreground italic">
-            예: "국내 금융사가 고객 이탈률 개선을 위해 데이터 기반 CRM 전략을 도입하여, 6개월 내 이탈률을 12% 감소시켰습니다." (예시 데이터)
-          </p>
-        </div>
-      </SectionBlock>
-
+      {/* 히어로 카피 공식 */}
       <SectionBlock id="hero-formula" title="히어로 카피 공식">
         <div className="space-y-3">
-          {[
-            { formula: "[타겟]을 위한 [핵심 가치]", example: "성장하는 기업을 위한 전략적 파트너" },
-            { formula: "[문제]를 [방식]으로 해결합니다", example: "복잡한 비즈니스 과제를 데이터로 풀어냅니다" },
-            { formula: "[성과]를 만드는 [차별점]", example: "측정 가능한 성과를 만드는 실행 중심 컨설팅" },
-            { formula: "[산업] 전문 [서비스]", example: "금융·헬스케어 전문 디지털 전환 컨설팅" },
-          ].map((item) => (
+          {heroFormulas.map((item) => (
             <div key={item.formula} className="rounded-lg border bg-card p-4">
               <span className="text-xs font-mono text-accent">{item.formula}</span>
               <p className="text-sm text-foreground mt-1">→ "{item.example}"</p>
@@ -123,65 +123,184 @@ const ContentGuide = () => {
         </div>
       </SectionBlock>
 
+      {/* 서비스 소개 템플릿 */}
+      <SectionBlock id="service-template" title="서비스 소개 문장 템플릿">
+        <div className="space-y-3">
+          {serviceIntroTemplates.map((item) => (
+            <div key={item.label} className="rounded-lg border bg-card p-5">
+              <BadgeLabel type="optional">{item.label}</BadgeLabel>
+              <p className="text-muted-foreground text-xs mt-2">
+                <strong className="text-foreground">공식:</strong> {item.formula}
+              </p>
+              <p className="text-muted-foreground italic text-xs mt-1">예: "{item.example}"</p>
+            </div>
+          ))}
+        </div>
+      </SectionBlock>
+
+      {/* 사례 소개 템플릿 */}
+      <SectionBlock id="case-template" title="케이스 스터디 서술 구조">
+        <div className="space-y-3">
+          {caseStudyTemplates.map((item) => (
+            <div key={item.label} className="rounded-lg border bg-card p-5">
+              <BadgeLabel type="required">{item.label}</BadgeLabel>
+              {"formula" in item && (
+                <>
+                  <p className="text-muted-foreground text-xs mt-2"><strong className="text-foreground">공식:</strong> {item.formula}</p>
+                  <p className="text-muted-foreground italic text-xs mt-1">예: "{item.example}"</p>
+                </>
+              )}
+              {"structure" in item && (
+                <ol className="mt-2 space-y-1">
+                  {item.structure.map((s, i) => (
+                    <li key={i} className="text-xs text-muted-foreground">{i + 1}. {s}</li>
+                  ))}
+                </ol>
+              )}
+            </div>
+          ))}
+        </div>
+      </SectionBlock>
+
+      {/* 전문가 프로필 */}
+      <SectionBlock id="expert-template" title="전문가 소개 문장 템플릿">
+        <div className="space-y-3">
+          {expertProfileTemplates.map((item) => (
+            <div key={item.label} className="rounded-lg border bg-card p-5">
+              <BadgeLabel type="optional">{item.label}</BadgeLabel>
+              {"formula" in item && (
+                <>
+                  <p className="text-xs font-mono text-accent mt-2">{item.formula}</p>
+                  <p className="text-xs text-muted-foreground italic mt-1">예: "{item.example}"</p>
+                </>
+              )}
+              {"structure" in item && (
+                <ul className="mt-2 space-y-1">
+                  {item.structure.map((s, i) => (
+                    <li key={i} className="text-xs text-muted-foreground">• {s}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ))}
+        </div>
+      </SectionBlock>
+
+      {/* 산업별 문제 정의 */}
+      <SectionBlock id="industry-problems" title="산업별 문제 정의 문장 템플릿">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {industryProblemTemplates.map((item) => (
+            <div key={item.industry} className="rounded-lg border bg-card p-4">
+              <span className="text-xs font-semibold text-accent">{item.industry}</span>
+              <p className="text-xs text-muted-foreground mt-1">{item.problem}</p>
+            </div>
+          ))}
+        </div>
+      </SectionBlock>
+
+      {/* 인사이트 타이틀 공식 */}
+      <SectionBlock id="insight-titles" title="인사이트/리포트 타이틀 공식">
+        <div className="space-y-2">
+          {insightTitleFormulas.map((item) => (
+            <div key={item.formula} className="rounded-lg border bg-card p-3 flex flex-col sm:flex-row sm:items-center gap-2">
+              <span className="text-xs font-mono text-accent shrink-0">{item.formula}</span>
+              <span className="text-xs text-muted-foreground">→ "{item.example}"</span>
+            </div>
+          ))}
+        </div>
+      </SectionBlock>
+
+      {/* 숫자 표시 */}
       <SectionBlock id="numbers" title="숫자와 성과를 보여주는 방법">
         <div className="rounded-lg border bg-card p-5">
-          <InfoList items={[
-            "숫자는 크게 표시: '300+' 형태로, 텍스트와 시각적 위계 구분",
-            "맥락 제공: 숫자만이 아닌, 의미를 함께 — '300+ 프로젝트 수행'",
-            "비교 가능한 수치: '전년 대비 25% 성장' 같은 상대적 표현 활용",
-            "출처 표시: 예시 데이터인 경우 반드시 '(예시 데이터)' 명시",
-            "과장 금지: 검증 불가한 '업계 최고', '1위' 등의 표현 제한",
-            "단위 명확히: '300+건', '50+개 기업', '12개국' 등",
-          ]} />
+          <InfoList items={numberDisplayRules} />
         </div>
       </SectionBlock>
 
+      {/* 성과 수치 없을 때 */}
+      <SectionBlock id="no-metrics" title="성과 수치가 없을 때 대체 서술 규칙">
+        <div className="rounded-lg border bg-accent/5 border-accent/20 p-5">
+          <InfoList items={noMetricsAlternatives} />
+        </div>
+      </SectionBlock>
+
+      {/* FAQ 작성 */}
+      <SectionBlock id="faq-writing" title="FAQ 작성 공식">
+        <div className="rounded-lg border bg-card p-5">
+          <InfoList items={faqWritingRules} />
+        </div>
+      </SectionBlock>
+
+      {/* CTA 라이브러리 */}
+      <SectionBlock id="cta-library" title="CTA 문구 라이브러리">
+        <div className="rounded-lg border bg-card overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b bg-surface">
+                <th className="text-left p-3 font-semibold text-foreground text-xs">위치</th>
+                <th className="text-left p-3 font-semibold text-foreground text-xs">Primary CTA</th>
+                <th className="text-left p-3 font-semibold text-foreground text-xs hidden sm:table-cell">Secondary CTA</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ctaLibrary.map((item) => (
+                <tr key={item.context} className="border-b last:border-b-0">
+                  <td className="p-3 text-xs text-muted-foreground">{item.context}</td>
+                  <td className="p-3 text-xs font-medium text-accent">{item.primary}</td>
+                  <td className="p-3 text-xs text-muted-foreground hidden sm:table-cell">{item.secondary || "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </SectionBlock>
+
+      {/* 금지 표현 */}
+      <SectionBlock id="prohibited" title="금지 표현 — 검증 불가한 주장">
+        <div className="rounded-lg border border-destructive/20 bg-destructive/5 overflow-hidden mb-4">
+          <div className="px-4 py-2 border-b border-destructive/20">
+            <span className="text-xs font-semibold text-destructive">⚠ 무근거 사용 금지 표현</span>
+          </div>
+          {prohibitedExpressions.unverifiableClaims.map((item) => (
+            <div key={item.expression} className="flex items-start gap-3 px-4 py-2.5 border-b border-destructive/10 last:border-b-0">
+              <span className="text-destructive text-xs shrink-0 mt-0.5">✕</span>
+              <div>
+                <span className="text-xs font-medium text-foreground">"{item.expression}"</span>
+                <span className="text-xs text-muted-foreground ml-2">— {item.reason}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </SectionBlock>
+
+      {/* 모호한 표현 → 대체안 */}
+      <SectionBlock id="vague" title="모호한 표현과 대체안">
+        <div className="rounded-lg border bg-card overflow-hidden">
+          {prohibitedExpressions.vagueExpressions.map((item) => (
+            <div key={item.expression} className="flex items-start gap-3 px-4 py-2.5 border-b last:border-b-0">
+              <span className="text-xs text-muted-foreground line-through">{item.expression}</span>
+              <span className="text-xs text-accent">{item.alternative}</span>
+            </div>
+          ))}
+        </div>
+      </SectionBlock>
+
+      {/* 허위 데이터 금지 */}
+      <SectionBlock id="fabrication" title="허위 데이터 절대 금지 규칙">
+        <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-5">
+          <InfoList items={prohibitedExpressions.fabricationRules} />
+        </div>
+      </SectionBlock>
+
+      {/* 피해야 할 문장 */}
       <SectionBlock id="avoid-sentences" title="피해야 할 문장 예시">
         <div className="space-y-2">
-          {[
-            "\"세계 최고의 컨설팅 서비스를 제공합니다\" — 검증 불가, 신뢰 저하",
-            "\"원스톱 토탈 솔루션\" — 지나치게 범용적, 차별점 없음",
-            "\"고객의 꿈을 실현합니다\" — 감성적 과잉, B2B 부적절",
-            "\"디지털 혁신을 선도합니다\" — 구체적 내용 없는 수식어",
-            "\"함께 성장하겠습니다\" — 모호하고 차별화 없음",
-          ].map((item) => (
-            <div key={item} className="flex items-start gap-2 rounded-lg border border-destructive/20 bg-destructive/5 p-3">
+          {avoidSentences.map((item) => (
+            <div key={item.sentence} className="flex items-start gap-2 rounded-lg border border-destructive/20 bg-destructive/5 p-3">
               <span className="text-destructive text-sm shrink-0">✕</span>
-              <span className="text-xs text-foreground">{item}</span>
+              <span className="text-xs text-foreground">"{item.sentence}" — {item.reason}</span>
             </div>
           ))}
-        </div>
-      </SectionBlock>
-
-      <SectionBlock id="cta-examples" title="추천 CTA 문구 예시">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {[
-            { context: "홈페이지 히어로", cta: "프로젝트 문의하기" },
-            { context: "서비스 페이지", cta: "이 서비스 상담 요청하기" },
-            { context: "사례 페이지", cta: "유사 프로젝트 문의하기" },
-            { context: "팀 소개 페이지", cta: "전문가와 상담하기" },
-            { context: "인사이트 페이지", cta: "전문 인사이트 구독하기" },
-            { context: "문의 페이지", cta: "문의 보내기" },
-            { context: "중간 CTA 배너", cta: "무료 초기 진단 받아보기" },
-            { context: "Footer CTA", cta: "프로젝트를 시작하세요" },
-          ].map((item) => (
-            <div key={item.context} className="flex items-center gap-3 rounded-lg border bg-card p-3">
-              <span className="text-xs text-muted-foreground w-28 shrink-0">{item.context}</span>
-              <span className="text-sm font-medium text-accent">{item.cta}</span>
-            </div>
-          ))}
-        </div>
-      </SectionBlock>
-
-      <SectionBlock id="faq-writing" title="FAQ 작성 방식">
-        <div className="rounded-lg border bg-card p-5">
-          <InfoList items={[
-            "질문은 고객의 언어로 — 내부 용어가 아닌 고객이 실제로 궁금해하는 형태",
-            "답변은 2~4문장 이내, 핵심을 먼저 답하고 보충 설명",
-            "너무 많은 FAQ는 역효과 — 5~8개가 적정, 카테고리 분류 가능",
-            "상담으로 연결되는 질문은 답변 끝에 CTA 링크 추가",
-            "예: '비용은 어떻게 책정되나요?' → 답변 + '상담을 통해 맞춤 견적을 받아보세요'",
-          ]} />
         </div>
       </SectionBlock>
     </AppLayout>
