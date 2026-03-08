@@ -106,6 +106,7 @@ export const routeMeta: Record<string, RouteMeta> = {
     ogImage: OG_IMAGE,
     robots: "index, follow",
     schemaType: "Article",
+    searchIntent: "UX 설계 — 여정 맵, CTA 배치, 전환 최적화, 모바일 UX",
     keywords: ["UX 전략", "전환 최적화", "사용자 여정"],
     navTitle: "UX Guide",
     navOrder: 4,
