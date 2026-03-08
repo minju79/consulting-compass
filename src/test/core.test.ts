@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import {
   analyzeBrief, emptyBrief, exampleBrief, generateBlueprints,
   exportBriefJson, importBriefJson, generateLovablePrompt,
@@ -10,6 +10,7 @@ import {
   fallbackMeta, getRoutesByGroup, getAdjacentRoutes, routeMeta,
 } from "@/data/routeMeta";
 import { industryConfig } from "@/data/industryConfig";
+import { applyPageMeta } from "@/hooks/usePageMeta";
 
 // ─── Route Meta ───
 
