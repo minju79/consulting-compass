@@ -114,7 +114,7 @@ const ClientBrief = () => {
     URL.revokeObjectURL(url);
     toast.success("JSON이 다운로드되었습니다");
   };
-  const handleImport = () => fileInputRef.current?.click();
+  const handleImport = () => { setImportError(null); fileInputRef.current?.click(); };
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -124,14 +124,18 @@ const ClientBrief = () => {
       if (result.success && result.data) {
         setFormData(result.data);
         saveBrief(result.data);
-        toast.success("브리프를 불러왔습니다");
+        setImportError(null);
+        toast.success(result.warning ? `브리프를 불러왔습니다 (${result.warning})` : "브리프를 불러왔습니다");
       } else {
         const msgs: Record<string, string> = {
-          invalid_json: "유효하지 않은 JSON 형식입니다",
-          invalid_shape: "브리프 데이터 형식이 올바르지 않습니다",
-          invalid_version: "지원하지 않는 스키마 버전입니다",
+          invalid_json: "유효하지 않은 JSON 형식입니다. 파일 내용을 확인하세요.",
+          invalid_shape: "브리프 데이터 형식이 올바르지 않습니다. 객체 형태여야 합니다.",
+          invalid_version: "지원하지 않는 스키마 버전입니다. 최신 포맷으로 내보내기 후 다시 시도하세요.",
+          empty_data: "브리프에 의미 있는 데이터가 없습니다. 회사명, 유형, 서비스 중 하나 이상을 입력해 주세요.",
         };
-        toast.error(msgs[result.error || ""] || "불러오기에 실패했습니다");
+        const errMsg = msgs[result.error || ""] || "불러오기에 실패했습니다";
+        setImportError(errMsg);
+        toast.error(errMsg);
       }
     };
     reader.readAsText(file);
