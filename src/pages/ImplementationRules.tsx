@@ -7,7 +7,7 @@ import { InfoList } from "@/components/guide/InfoList";
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { AlertTriangle, ArrowRight, Sparkles } from "lucide-react";
-import { loadBrief, saveBrief, exampleBrief, analyzeBrief, generateBlueprints, BriefData } from "@/lib/brief";
+import { loadBrief, saveBrief, exampleBrief, analyzeBrief, generateBlueprints, getProofFallbacks, BriefData } from "@/lib/brief";
 
 function RuleCard({ condition, result, active }: { condition: string; result: string; active: boolean }) {
   return (
@@ -25,7 +25,7 @@ function RuleCard({ condition, result, active }: { condition: string; result: st
 const templateSelectionRules = [
   { condition: "인바운드 영업 중심 + 사례 3건 이상", result: "케이스 스터디 중심형 + 리드 수집형 혼합", check: (b: BriefData) => b.salesMethod?.includes("인바운드") && b.hasCases },
   { condition: "부티크 컨설팅 + 전문가 중심", result: "전문가 중심형", check: (b: BriefData) => b.projectScale === "소규모 (1~3개월)" && b.hasExpertProfiles },
-  { condition: "산업 특화 + 2개 이상 산업 페이지", result: "산업 특화형", check: (b: BriefData) => (b.industries?.split(",").length || 0) >= 2 },
+  { condition: "산업 특화 + 2개 이상 산업 페이지", result: "산업 특화형", check: (b: BriefData) => (b.industries?.split(",").filter((s) => s.trim()).length || 0) >= 2 },
   { condition: "블로그/리포트 정기 발행 + SEO 유입", result: "인사이트 중심형", check: (b: BriefData) => b.hasInsights && b.hasDownloads },
   { condition: "사례 + 수치 보유", result: "케이스 스터디 중심형", check: (b: BriefData) => b.hasCases === true && b.hasMetrics === true },
   { condition: "증거 자산 5개 이상", result: "신뢰 증명형", check: (b: BriefData) => { const a = analyzeBrief(b); return a.proofScore >= 5; } },
@@ -42,22 +42,13 @@ const ctaRules = [
   { condition: "일반 상담 문의", cta: "전문가 상담 신청하기", check: (b: BriefData) => b.primaryCta === "상담 문의" },
 ];
 
-const proofFallbacks = [
-  { missing: "고객사 로고 비공개", alt: "'금융/제조/IT 산업 다수 고객사 보유' 등 산업군 기반 서술", briefKey: "hasClientLogos" as keyof BriefData },
-  { missing: "성과 수치 비공개", alt: "'N년 이상 업계 경험', '다수의 성공적 프로젝트 수행' 등 정성적 표현", briefKey: "hasMetrics" as keyof BriefData },
-  { missing: "추천사 없음", alt: "케이스 스터디 성과 수치로 간접 증명", briefKey: "hasTestimonials" as keyof BriefData },
-  { missing: "전문가 사진 없음", alt: "이니셜 아바타 + 경력 요약 텍스트", briefKey: "hasExpertProfiles" as keyof BriefData },
-  { missing: "사례 0건", alt: "프로세스/방법론 블록으로 체계적 접근 증명 + 산업 경험 서술", briefKey: "hasCases" as keyof BriefData },
-  { missing: "블로그 미운영", alt: "FAQ 확장 + 서비스 설명 콘텐츠 강화", briefKey: "hasInsights" as keyof BriefData },
-  { missing: "다운로드 리소스 없음", alt: "뉴스레터 구독 또는 상담 CTA로 대체", briefKey: "hasDownloads" as keyof BriefData },
-  { missing: "세미나/웨비나 없음", alt: "인사이트 콘텐츠 또는 사례 강화로 대체", briefKey: "hasWebinars" as keyof BriefData },
-];
-
 const layoutRules = [
-  { condition: "사례 보유 + 산업 2개 이상", layout: "산업별 → 사례별 이중 탐색 구조", check: (b: BriefData) => b.hasCases && (b.industries?.split(",").length || 0) >= 2 },
-  { condition: "서비스 6개 이상", layout: "서비스 카테고리 분류 → 서브 페이지 분리", check: (b: BriefData) => (b.coreServices?.split(",").length || 0) >= 6 },
+  { condition: "사례 보유 + 산업 2개 이상", layout: "산업별 → 사례별 이중 탐색 구조", check: (b: BriefData) => b.hasCases && (b.industries?.split(",").filter((s) => s.trim()).length || 0) >= 2 },
+  { condition: "서비스 6개 이상", layout: "서비스 카테고리 분류 → 서브 페이지 분리", check: (b: BriefData) => (b.coreServices?.split(",").filter((s) => s.trim()).length || 0) >= 6 },
   { condition: "부티크 모델", layout: "전문가 중심 1페이지 통합 가능", check: (b: BriefData) => b.projectScale === "소규모 (1~3개월)" },
   { condition: "다국어 필요", layout: "언어 스위처 + hreflang 적용", check: (b: BriefData) => b.needsMultilang === true },
+  { condition: "인사이트 운영", layout: "블로그/인사이트 섹션 + 카테고리 구조", check: (b: BriefData) => b.hasInsights === true },
+  { condition: "다운로드 리소스 보유", layout: "리포트 랜딩 페이지 + 리드젠 폼", check: (b: BriefData) => b.hasDownloads === true },
 ];
 
 const ImplementationRules = () => {
@@ -65,6 +56,7 @@ const ImplementationRules = () => {
   const isEmpty = !brief.companyName && !brief.consultingType;
   const analysis = useMemo(() => analyzeBrief(brief), [brief]);
   const blueprints = useMemo(() => isEmpty ? [] : generateBlueprints(brief, analysis), [brief, analysis, isEmpty]);
+  const proofFallbacks = useMemo(() => getProofFallbacks(analysis), [analysis]);
 
   const handleLoadExample = () => {
     saveBrief(exampleBrief);
@@ -80,32 +72,43 @@ const ImplementationRules = () => {
   const optionalBlocks = blueprints.flatMap((bp) => bp.blocks.filter((b) => b.status === "optional")).map((b) => b.name);
   const uniqueOptional = [...new Set(optionalBlocks)];
 
-  const activeProofFallbacks = proofFallbacks.filter((pf) => brief[pf.briefKey] === false);
+  const activeProofFallbacks = proofFallbacks.filter((f) => f.active);
 
   const implGuide = `# ${brief.companyName || "[회사명]"} 구현 지침 요약
 
 ## 사이트 유형: ${analysis.siteType}
+판별 근거: ${analysis.siteTypeReason}
+
 ## 추천 규모: ${analysis.scaleRecommendation}
 ## 유형: ${analysis.isBoutique ? "부티크 컨설팅" : "종합 컨설팅"}
-## 핵심 CTA: ${analysis.recommendedCta}
+## 핵심 CTA: "${analysis.recommendedCta}"
+## 보조 CTA: "${analysis.recommendedSecondaryCta}"
 
-## 필수 블록
+## 필수 블록 (${uniqueRequired.length}개)
 ${uniqueRequired.map((b) => `- ${b}`).join("\n")}
 
-## 선택 블록
+## 선택 블록 (${uniqueOptional.length}개)
 ${uniqueOptional.map((b) => `- ${b}`).join("\n") || "없음"}
 
-## 조건부 블록
+## 조건부 블록 (${uniqueConditional.length}개)
 ${uniqueConditional.map((b) => `- ${b}`).join("\n") || "없음"}
 
-## 금지 블록
+## 금지 블록 (${uniqueProhibited.length}개)
 ${uniqueProhibited.map((b) => `- ${b}`).join("\n") || "없음"}
 
 ## 증거 자산 대체 전략
-${activeProofFallbacks.map((pf) => `- ${pf.missing}: ${pf.alt}`).join("\n") || "모두 보유 — 대체 불필요"}
+${activeProofFallbacks.map((f) => `- ${f.asset}: ${f.fallback}`).join("\n") || "모두 보유 — 대체 불필요"}
 
 ## 페이지 구성 (${blueprints.length}개)
 ${blueprints.map((bp) => `- ${bp.name} (${bp.status})`).join("\n")}
+
+## 핵심 신뢰 블록 (예산 축소 시에도 유지)
+- Hero + 핵심 메시지
+- 서비스 개요
+- 프로세스/방법론
+- CTA 배너
+- 연락 정보
+${brief.hasCases ? "- 케이스 스터디 하이라이트" : ""}
 `;
 
   return (
@@ -117,9 +120,10 @@ ${blueprints.map((bp) => `- ${bp.name} (${bp.status})`).join("\n")}
         <div className="rounded-lg border bg-accent/5 border-accent/20 p-4 mb-6">
           <p className="text-sm text-foreground font-medium mb-1">📋 빠른 적용 포인트</p>
           <ul className="text-xs text-muted-foreground space-y-0.5">
-            <li>• 사이트 유형: <strong className="text-accent">{analysis.siteType}</strong> · {analysis.isBoutique ? "부티크" : "종합"}</li>
+            <li>• 사이트 유형: <strong className="text-accent">{analysis.siteType}</strong> · {analysis.isBoutique ? "부티크" : "종합"} · {analysis.hasIndustryFocus ? `${analysis.industryCount}개 산업 특화` : "일반"}</li>
             <li>• 필수 블록 {uniqueRequired.length}개 · 조건부 {uniqueConditional.length}개 · 금지 {uniqueProhibited.length}개 · 자산 대체 필요 {activeProofFallbacks.length}개</li>
             <li>• 추천 규모: <strong className="text-foreground">{analysis.scaleRecommendation}</strong> · 총 {blueprints.length}개 페이지</li>
+            <li>• 콘텐츠: {analysis.hasContentStrategy ? "인사이트 운영" : "미운영"} · 다운로드: {analysis.hasDownloadStrategy ? "운영" : "미운영"}</li>
           </ul>
         </div>
       )}
@@ -127,7 +131,8 @@ ${blueprints.map((bp) => `- ${bp.name} (${bp.status})`).join("\n")}
       {isEmpty && (
         <div className="rounded-lg border-2 border-dashed bg-surface p-8 text-center mb-8">
           <AlertTriangle className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
-          <p className="text-sm text-muted-foreground mb-4">브리프 데이터가 없어 기본 규칙만 표시됩니다.</p>
+          <h3 className="text-base font-semibold text-foreground mb-1">브리프 데이터가 없습니다</h3>
+          <p className="text-sm text-muted-foreground mb-4">브리프를 작성하면 입력값에 따라 실제 규칙이 활성화됩니다.</p>
           <div className="flex flex-wrap justify-center gap-3">
             <Link to="/client-brief" className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90">브리프 작성하기 <ArrowRight className="h-4 w-4" /></Link>
             <button onClick={handleLoadExample} className="inline-flex items-center gap-2 rounded-lg border bg-card px-4 py-2 text-sm font-semibold text-foreground hover:bg-secondary"><Sparkles className="h-4 w-4 text-accent" /> 예시로 보기</button>
@@ -215,6 +220,20 @@ ${blueprints.map((bp) => `- ${bp.name} (${bp.status})`).join("\n")}
         </SectionBlock>
       )}
 
+      {/* Optional Blocks */}
+      {uniqueOptional.length > 0 && (
+        <SectionBlock id="optional-blocks" title="선택 블록 (제거 가능)">
+          <div className="space-y-2">
+            {uniqueOptional.map((b) => (
+              <div key={b} className="flex items-center gap-2">
+                <BadgeLabel type="optional" />
+                <span className="text-sm text-foreground">{b}</span>
+              </div>
+            ))}
+          </div>
+        </SectionBlock>
+      )}
+
       {/* Prohibited Blocks */}
       {uniqueProhibited.length > 0 && (
         <SectionBlock id="prohibited-blocks" title="금지 블록">
@@ -236,27 +255,22 @@ ${blueprints.map((bp) => `- ${bp.name} (${bp.status})`).join("\n")}
             <caption className="sr-only">증거 자산 부족 시 대체 전략 표</caption>
             <thead>
               <tr className="border-b bg-surface">
-                <th scope="col" className="text-left p-3 text-xs font-semibold text-foreground">부족 자산</th>
+                <th scope="col" className="text-left p-3 text-xs font-semibold text-foreground">자산</th>
                 <th scope="col" className="text-left p-3 text-xs font-semibold text-foreground">대체 전략</th>
                 <th scope="col" className="text-left p-3 text-xs font-semibold text-foreground w-20">상태</th>
               </tr>
             </thead>
             <tbody>
-              {proofFallbacks.map((pf) => {
-                const needsFallback = brief[pf.briefKey] === false;
-                const notSet = brief[pf.briefKey] === null;
-                return (
-                  <tr key={pf.missing} className={`border-b last:border-b-0 ${needsFallback ? "bg-destructive/5" : ""}`}>
-                    <td className="p-3 text-xs font-medium text-foreground">{pf.missing}</td>
-                    <td className="p-3 text-xs text-muted-foreground">{pf.alt}</td>
-                    <td className="p-3">
-                      {needsFallback ? <BadgeLabel type="prohibited">대체 필요</BadgeLabel> :
-                       notSet ? <BadgeLabel type="optional">미입력</BadgeLabel> :
-                       <BadgeLabel type="required">보유</BadgeLabel>}
-                    </td>
-                  </tr>
-                );
-              })}
+              {proofFallbacks.map((pf) => (
+                <tr key={pf.asset} className={`border-b last:border-b-0 ${pf.active ? "bg-destructive/5" : ""}`}>
+                  <td className="p-3 text-xs font-medium text-foreground">{pf.asset}</td>
+                  <td className="p-3 text-xs text-muted-foreground">{pf.fallback}</td>
+                  <td className="p-3">
+                    {pf.active ? <BadgeLabel type="prohibited">대체 필요</BadgeLabel> :
+                     <BadgeLabel type="required">보유</BadgeLabel>}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>

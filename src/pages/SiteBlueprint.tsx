@@ -5,7 +5,7 @@ import { BadgeLabel } from "@/components/guide/BadgeLabel";
 import { CopyBlock } from "@/components/guide/CopyBlock";
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { AlertTriangle, ArrowRight, Sparkles, Copy } from "lucide-react";
+import { AlertTriangle, ArrowRight, Sparkles } from "lucide-react";
 import {
   BriefData,
   exampleBrief,
@@ -14,6 +14,7 @@ import {
   analyzeBrief,
   generateBlueprints,
   generateLovablePrompt,
+  getProofFallbacks,
   PageBlueprint,
 } from "@/lib/brief";
 
@@ -35,6 +36,27 @@ function PageBlueprintCard({ bp }: { bp: PageBlueprint }) {
     conditional: bp.blocks.filter((b) => b.status === "conditional"),
     prohibited: bp.blocks.filter((b) => b.status === "prohibited"),
   };
+
+  // Generate copy-ready text for this page
+  const copyText = [
+    `## ${bp.name} (${bp.status})`,
+    `\n### 필수 블록`,
+    ...blocksByStatus.required.map((b) => `- ${b.name}${b.note ? ` — ${b.note}` : ""}`),
+    blocksByStatus.optional.length > 0 ? `\n### 선택 블록` : "",
+    ...blocksByStatus.optional.map((b) => `- ${b.name}${b.note ? ` — ${b.note}` : ""}`),
+    blocksByStatus.conditional.length > 0 ? `\n### 조건부 블록` : "",
+    ...blocksByStatus.conditional.map((b) => `- ${b.name}${b.note ? ` — ${b.note}` : ""}`),
+    blocksByStatus.prohibited.length > 0 ? `\n### 금지 블록` : "",
+    ...blocksByStatus.prohibited.map((b) => `- ${b.name}`),
+    `\n핵심 CTA: "${bp.cta}"`,
+    bp.secondaryCta ? `보조 CTA: "${bp.secondaryCta}"` : "",
+    `모바일: ${bp.mobileRule}`,
+    bp.proofElements.length > 0 ? `증거 요소: ${bp.proofElements.join(", ")}` : "",
+    bp.seoPoints.length > 0 ? `SEO: ${bp.seoPoints.join(", ")}` : "",
+    bp.assetFallbacks && bp.assetFallbacks.length > 0 ? `자산 부족 대체: ${bp.assetFallbacks.join("; ")}` : "",
+    bp.subtypeNotes ? `유형 참고: ${bp.subtypeNotes}` : "",
+    bp.reviewClaims && bp.reviewClaims.length > 0 ? `검토 필요: ${bp.reviewClaims.join("; ")}` : "",
+  ].filter(Boolean).join("\n");
 
   return (
     <div className="rounded-lg border bg-card p-5">
@@ -78,21 +100,29 @@ function PageBlueprintCard({ bp }: { bp: PageBlueprint }) {
         {bp.secondaryCta && <div><span className="text-muted-foreground font-semibold">보조 CTA:</span> <span className="text-foreground">"{bp.secondaryCta}"</span></div>}
         <div><span className="text-muted-foreground font-semibold">모바일:</span> <span className="text-foreground">{bp.mobileRule}</span></div>
         {bp.proofElements.length > 0 && (
-          <div className="col-span-2"><span className="text-muted-foreground font-semibold">증거 요소:</span> <span className="text-foreground">{bp.proofElements.join(", ")}</span></div>
+          <div className="col-span-full"><span className="text-muted-foreground font-semibold">증거 요소:</span> <span className="text-foreground">{bp.proofElements.join(", ")}</span></div>
         )}
         {bp.seoPoints.length > 0 && (
-          <div className="col-span-2"><span className="text-muted-foreground font-semibold">SEO:</span> <span className="text-foreground">{bp.seoPoints.join(", ")}</span></div>
+          <div className="col-span-full"><span className="text-muted-foreground font-semibold">SEO:</span> <span className="text-foreground">{bp.seoPoints.join(", ")}</span></div>
         )}
         {bp.assetFallbacks && bp.assetFallbacks.length > 0 && (
-          <div className="col-span-2"><span className="text-destructive font-semibold">자산 부족 대체:</span> <span className="text-muted-foreground">{bp.assetFallbacks.join("; ")}</span></div>
+          <div className="col-span-full"><span className="text-destructive font-semibold">자산 부족 대체:</span> <span className="text-muted-foreground">{bp.assetFallbacks.join("; ")}</span></div>
         )}
         {bp.subtypeNotes && (
-          <div className="col-span-2"><span className="text-muted-foreground font-semibold">유형 참고:</span> <span className="text-foreground">{bp.subtypeNotes}</span></div>
+          <div className="col-span-full"><span className="text-muted-foreground font-semibold">유형 참고:</span> <span className="text-foreground">{bp.subtypeNotes}</span></div>
         )}
         {bp.reviewClaims && bp.reviewClaims.length > 0 && (
-          <div className="col-span-2"><span className="text-yellow-600 font-semibold">검토 필요:</span> <span className="text-muted-foreground">{bp.reviewClaims.join("; ")}</span></div>
+          <div className="col-span-full"><span className="text-yellow-600 font-semibold">검토 필요:</span> <span className="text-muted-foreground">{bp.reviewClaims.join("; ")}</span></div>
         )}
       </div>
+
+      {/* Copy block for this page */}
+      <details className="mt-3">
+        <summary className="text-[10px] text-accent cursor-pointer hover:underline">복사용 블록 보기</summary>
+        <div className="mt-2">
+          <CopyBlock content={copyText} />
+        </div>
+      </details>
     </div>
   );
 }
@@ -103,6 +133,7 @@ const SiteBlueprint = () => {
   const analysis = useMemo(() => analyzeBrief(brief), [brief]);
   const blueprints = useMemo(() => isEmpty ? [] : generateBlueprints(brief, analysis), [brief, analysis, isEmpty]);
   const prompt = useMemo(() => isEmpty ? "" : generateLovablePrompt(brief, analysis, blueprints), [brief, analysis, blueprints, isEmpty]);
+  const proofFallbacks = useMemo(() => getProofFallbacks(analysis), [analysis]);
 
   const handleLoadExample = () => {
     saveBrief(exampleBrief);
@@ -144,8 +175,11 @@ const SiteBlueprint = () => {
         <ul className="text-xs text-muted-foreground space-y-0.5">
           <li>• 사이트 유형: <strong className="text-accent">{analysis.siteType}</strong> — {analysis.siteTypeReason}</li>
           <li>• 추천 규모: <strong className="text-foreground">{analysis.scaleRecommendation}</strong> · 총 {blueprints.length}개 페이지 · 증거 자산 {analysis.proofScore}/8</li>
-          <li>• 핵심 CTA: <strong className="text-foreground">"{analysis.recommendedCta}"</strong></li>
+          <li>• 핵심 CTA: <strong className="text-foreground">"{analysis.recommendedCta}"</strong> · 보조: "{analysis.recommendedSecondaryCta}"</li>
           <li>• 유형: {analysis.isBoutique ? "부티크 컨설팅" : "종합 컨설팅"} · 산업 특화: {analysis.hasIndustryFocus ? `${analysis.industryCount}개 산업` : "일반"}</li>
+          {proofFallbacks.filter((f) => f.active).length > 0 && (
+            <li>• <span className="text-destructive">자산 대체 필요:</span> {proofFallbacks.filter((f) => f.active).map((f) => f.asset).join(", ")}</li>
+          )}
         </ul>
       </div>
 
@@ -174,7 +208,7 @@ const SiteBlueprint = () => {
         <div className="rounded-lg border bg-card p-5">
           <p className="text-sm text-foreground mb-2"><strong>{analysis.siteType}</strong></p>
           <p className="text-xs text-muted-foreground mb-3">{analysis.siteTypeReason}</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
             <div className="rounded-md border bg-surface px-3 py-2">
               <span className="text-muted-foreground">유형:</span>
               <span className="text-foreground ml-1">{analysis.isBoutique ? "부티크" : "종합"}</span>
@@ -186,6 +220,10 @@ const SiteBlueprint = () => {
             <div className="rounded-md border bg-surface px-3 py-2">
               <span className="text-muted-foreground">규모:</span>
               <span className="text-foreground ml-1">{brief.projectScale || "미지정"}</span>
+            </div>
+            <div className="rounded-md border bg-surface px-3 py-2">
+              <span className="text-muted-foreground">콘텐츠:</span>
+              <span className="text-foreground ml-1">{analysis.hasContentStrategy ? "인사이트 운영" : "미운영"}</span>
             </div>
           </div>
         </div>
@@ -242,10 +280,21 @@ const SiteBlueprint = () => {
           {analysis.proofSummary.map((p) => (
             <div key={p.id} className={`rounded-md border px-3 py-2 ${p.status === "보유" ? "bg-accent/5 border-accent/20" : p.status === "부족" ? "bg-destructive/5 border-destructive/20" : "bg-muted"}`}>
               <span className="text-xs text-muted-foreground">{p.label}</span>
-              <p className="text-xs font-semibold mt-0.5">{p.status}</p>
+              <div className="flex items-center gap-1 mt-0.5">
+                <p className="text-xs font-semibold">{p.status}</p>
+                <span className="text-[9px] text-muted-foreground">(강도 {p.strength}/5)</span>
+              </div>
             </div>
           ))}
         </div>
+        {proofFallbacks.filter((f) => f.active).length > 0 && (
+          <div className="mt-3 rounded-lg border border-destructive/20 bg-destructive/5 p-3">
+            <p className="text-xs font-semibold text-destructive mb-1">대체 전략 필요</p>
+            {proofFallbacks.filter((f) => f.active).map((f) => (
+              <p key={f.asset} className="text-xs text-muted-foreground">• {f.asset}: {f.fallback}</p>
+            ))}
+          </div>
+        )}
         <div className="mt-3 flex gap-3 text-xs">
           <Link to="/proof-system" className="text-accent hover:underline">증거 체계 상세 →</Link>
           <Link to="/implementation-rules" className="text-accent hover:underline">구현 규칙 →</Link>
