@@ -178,7 +178,7 @@ export const routeMeta: Record<string, RouteMeta> = {
     ogImage: OG_IMAGE,
     robots: "index, follow",
     schemaType: "WebPage",
-    searchIntent: "제작 검수 — 단계별 체크 항목 확인",
+    searchIntent: "제작 검수 — 기획·디자인·UI·UX·SEO·런칭 전 단계별 체크",
     keywords: ["체크리스트", "QA", "런칭"],
     navTitle: "Checklist",
     navOrder: 8,
