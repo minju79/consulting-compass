@@ -2,11 +2,12 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/guide/PageHeader";
 import { SectionBlock } from "@/components/guide/SectionBlock";
 import { BadgeLabel } from "@/components/guide/BadgeLabel";
+import { CopyBlock } from "@/components/guide/CopyBlock";
 import { InfoList } from "@/components/guide/InfoList";
 import { proofAssets, pageProofRules } from "@/data/proofSystemRules";
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { loadBrief, analyzeBrief } from "@/lib/brief";
+import { loadBrief, analyzeBrief, generateBlueprints } from "@/lib/brief";
 
 const pageLabels: Record<string, string> = {
   homepage: "홈페이지", service: "서비스 페이지", industry: "산업/전문분야 페이지",
@@ -17,6 +18,10 @@ const ProofSystem = () => {
   const brief = useMemo(() => loadBrief(), []);
   const analysis = useMemo(() => analyzeBrief(brief), [brief]);
   const hasBrief = !!brief.companyName || !!brief.consultingType;
+  const blueprints = useMemo(() => hasBrief ? generateBlueprints(brief, analysis) : [], [brief, analysis, hasBrief]);
+
+  // Proof-aware summary for copy
+  const proofCopySummary = analysis.proofSummary.map((p) => `- ${p.label}: ${p.status}`).join("\n");
 
   return (
     <AppLayout>
@@ -26,9 +31,20 @@ const ProofSystem = () => {
         description="컨설팅 업종 특유의 신뢰 증거 우선순위, 페이지별 배치 규칙, 자산 부족 시 대체 전략을 구조화합니다."
       />
 
+      {/* Quick summary */}
+      <div className="rounded-lg border bg-accent/5 border-accent/20 p-4 mb-6">
+        <p className="text-sm text-foreground font-medium mb-1">📋 빠른 적용 포인트</p>
+        <ul className="text-xs text-muted-foreground space-y-0.5">
+          <li>• 증거 자산은 <strong className="text-foreground">우선순위가 있으며</strong>, 모든 것을 다 보여줄 필요는 없습니다.</li>
+          <li>• 보유하지 않은 자산에 대해서는 <strong className="text-foreground">반드시 대체 전략을 적용</strong>하세요.</li>
+          <li>• 허위 자산 (고객사, 수치, 추천사, 수상 등)은 <strong className="text-destructive">절대 생성 금지</strong>입니다.</li>
+          {hasBrief && <li>• 현재 브리프 기반 증거 점수: <strong className="text-accent">{analysis.proofScore}/8</strong></li>}
+        </ul>
+      </div>
+
       {/* Brief-linked summary board */}
       {hasBrief && (
-        <div className="rounded-lg border bg-accent/5 border-accent/20 p-5 mb-8">
+        <div className="rounded-lg border bg-card p-5 mb-8">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-semibold text-foreground">{brief.companyName || "고객사"} 증거 자산 현황</h3>
             <span className="text-xs text-muted-foreground">점수: {analysis.proofScore}/8</span>
@@ -37,33 +53,37 @@ const ProofSystem = () => {
             {analysis.proofSummary.map((p) => (
               <div key={p.id} className={`rounded-md border px-3 py-2 ${
                 p.status === "보유" ? "bg-accent/10 border-accent/30" :
-                p.status === "부족" ? "bg-destructive/5 border-destructive/20" : "bg-muted"
+                p.status === "부족" ? "bg-destructive/5 border-destructive/20" :
+                p.status === "검토 필요" ? "bg-yellow-500/5 border-yellow-500/20" : "bg-muted"
               }`}>
                 <span className="text-xs text-muted-foreground">{p.label}</span>
                 <div className="mt-1">
-                  <BadgeLabel type={p.status === "보유" ? "required" : p.status === "부족" ? "prohibited" : "optional"}>
+                  <BadgeLabel type={
+                    p.status === "보유" ? "required" :
+                    p.status === "부족" ? "prohibited" :
+                    p.status === "검토 필요" ? "review" : "optional"
+                  }>
                     {p.status}
                   </BadgeLabel>
                 </div>
               </div>
             ))}
           </div>
-          <div className="mt-3 flex gap-3 text-xs">
+          <div className="mt-3 flex flex-wrap gap-3 text-xs">
             <Link to="/client-brief" className="text-accent hover:underline">브리프 수정 →</Link>
             <Link to="/site-blueprint" className="text-accent hover:underline">청사진 보기 →</Link>
             <Link to="/implementation-rules" className="text-accent hover:underline">구현 규칙 →</Link>
+            <Link to="/content-guide" className="text-accent hover:underline">콘텐츠 가이드 →</Link>
           </div>
         </div>
       )}
 
       {!hasBrief && (
-        <div className="rounded-lg border bg-accent/5 border-accent/20 p-4 mb-8">
-          <p className="text-sm text-foreground font-medium mb-1">📋 빠른 적용 포인트</p>
-          <ul className="text-xs text-muted-foreground space-y-1">
-            <li>• <Link to="/client-brief" className="text-accent hover:underline">Client Brief</Link>를 작성하면 여기에 실제 고객사 자산 현황이 표시됩니다.</li>
-            <li>• 신뢰 요소는 우선순위가 있으며, 모든 것을 다 보여줄 필요는 없습니다.</li>
-            <li>• 보유하지 않은 자산에 대해서는 반드시 대체 전략을 적용하세요.</li>
-          </ul>
+        <div className="rounded-lg border bg-muted/50 p-4 mb-8">
+          <p className="text-sm text-foreground font-medium mb-1">📋 브리프 미작성</p>
+          <p className="text-xs text-muted-foreground mb-2">
+            <Link to="/client-brief" className="text-accent hover:underline">Client Brief</Link>를 작성하면 실제 고객사 자산 현황이 여기에 반영됩니다.
+          </p>
         </div>
       )}
 
@@ -125,6 +145,7 @@ const ProofSystem = () => {
                             <li key={id} className="text-xs text-foreground flex items-center gap-1">
                               {asset?.name || id}
                               {hasBrief && bStatus?.status === "부족" && <span className="text-destructive text-[10px]">(부족)</span>}
+                              {hasBrief && bStatus?.status === "보유" && <span className="text-accent text-[10px]">(✓)</span>}
                             </li>
                           );
                         })}
@@ -137,6 +158,31 @@ const ProofSystem = () => {
           ))}
         </div>
       </SectionBlock>
+
+      {/* Blueprint proof integration */}
+      {hasBrief && blueprints.length > 0 && (
+        <SectionBlock id="blueprint-proof" title="청사진 연동 — 페이지별 증거 요소">
+          <div className="space-y-3">
+            {blueprints.filter((bp) => bp.proofElements.length > 0).map((bp) => (
+              <div key={bp.name} className="rounded-lg border bg-card p-4">
+                <h4 className="font-semibold text-xs text-foreground mb-2">{bp.name}</h4>
+                <div className="flex flex-wrap gap-2">
+                  {bp.proofElements.map((el) => (
+                    <span key={el} className="rounded-md border bg-accent/5 border-accent/20 px-2 py-1 text-[10px] text-accent">{el}</span>
+                  ))}
+                </div>
+                {bp.assetFallbacks && bp.assetFallbacks.length > 0 && (
+                  <div className="mt-2">
+                    {bp.assetFallbacks.map((f) => (
+                      <span key={f} className="text-[10px] text-destructive block">⚠ {f}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </SectionBlock>
+      )}
 
       <SectionBlock id="asset-classification" title="자산 분류 체계">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -161,13 +207,16 @@ const ProofSystem = () => {
       <SectionBlock id="combination-fallbacks" title="증거 부족 시 대체 가능한 조합">
         <div className="space-y-3">
           {[
-            { scenario: "사례 0건 + 수치 없음", combo: "프로세스/방법론 + 전문가 경력 + 산업 경험 서술" },
-            { scenario: "로고 비공개 + 추천사 없음", combo: "산업군 기반 서술 + 프로젝트 수 (추상적 표현) + 프로세스" },
-            { scenario: "전문가 사진 없음", combo: "이니셜 아바타 + 경력/학력 요약 + 전문 분야 태그" },
-            { scenario: "모든 자산 부족 (신규 회사)", combo: "창업자 경력 + 방법론 + 무료 초기 진단 CTA + FAQ 확장" },
+            { scenario: "사례 0건 + 수치 없음", combo: "프로세스/방법론 + 전문가 경력 + 산업 경험 서술", active: hasBrief && !brief.hasCases && !brief.hasMetrics },
+            { scenario: "로고 비공개 + 추천사 없음", combo: "산업군 기반 서술 + 프로젝트 수 (추상적 표현) + 프로세스", active: hasBrief && !brief.hasClientLogos && !brief.hasTestimonials },
+            { scenario: "전문가 사진 없음", combo: "이니셜 아바타 + 경력/학력 요약 + 전문 분야 태그", active: hasBrief && !brief.hasBrandAssets },
+            { scenario: "모든 자산 부족 (신규 회사)", combo: "창업자 경력 + 방법론 + 무료 초기 진단 CTA + FAQ 확장", active: hasBrief && analysis.proofScore === 0 },
           ].map((item) => (
-            <div key={item.scenario} className="rounded-lg border bg-card p-4">
-              <p className="text-xs text-destructive font-medium mb-1">시나리오: {item.scenario}</p>
+            <div key={item.scenario} className={`rounded-lg border p-4 ${item.active ? "bg-destructive/5 border-destructive/20" : "bg-card"}`}>
+              <div className="flex items-center gap-2 mb-1">
+                <p className="text-xs text-destructive font-medium">시나리오: {item.scenario}</p>
+                {item.active && <BadgeLabel type="prohibited">해당</BadgeLabel>}
+              </div>
               <p className="text-sm text-foreground">→ {item.combo}</p>
             </div>
           ))}
@@ -190,6 +239,26 @@ const ProofSystem = () => {
           </p>
         </div>
       </SectionBlock>
+
+      {/* Proof summary copy block */}
+      {hasBrief && (
+        <SectionBlock id="proof-copy" title="증거 자산 현황 (복사용)">
+          <CopyBlock content={`# ${brief.companyName || "[회사명]"} 증거 자산 현황\n\n${proofCopySummary}\n\n점수: ${analysis.proofScore}/8`} label="증거 자산 현황 요약" />
+        </SectionBlock>
+      )}
+
+      {/* Workflow */}
+      <div className="flex flex-wrap gap-3 mt-4">
+        <Link to="/content-guide" className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
+          콘텐츠 가이드 →
+        </Link>
+        <Link to="/implementation-rules" className="inline-flex items-center gap-2 rounded-lg border bg-card px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary transition-colors">
+          구현 규칙 보기
+        </Link>
+        <Link to="/site-blueprint" className="inline-flex items-center gap-2 rounded-lg border bg-card px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary transition-colors">
+          청사진 보기
+        </Link>
+      </div>
     </AppLayout>
   );
 };
