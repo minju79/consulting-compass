@@ -70,6 +70,7 @@ export const routeMeta: Record<string, RouteMeta> = {
     ogImage: OG_IMAGE,
     robots: "index, follow",
     schemaType: "Article",
+    searchIntent: "디자인 실행 — 컬러, 타이포, 간격, 이미지 스타일 적용",
     keywords: ["디자인 시스템", "B2B 컬러", "타이포그래피"],
     navTitle: "Design Guide",
     navOrder: 2,
