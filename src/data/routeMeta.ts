@@ -1,0 +1,182 @@
+import { industryConfig } from "./industryConfig";
+
+export interface RouteMeta {
+  path: string;
+  title: string;
+  description: string;
+  ogTitle: string;
+  ogDescription: string;
+  ogType: string;
+  jsonLdType?: string;
+  searchIntent?: string;
+  navTitle: string;
+  navOrder: number;
+  icon: string; // lucide icon name
+}
+
+const BASE = industryConfig.siteUrl;
+
+export const routeMeta: Record<string, RouteMeta> = {
+  "/": {
+    path: "/",
+    title: `${industryConfig.tagline} | 내부 기준서`,
+    description: `${industryConfig.name} 업종 홈페이지를 빠르게 제작하기 위한 디자인·UI·UX·콘텐츠·SEO 통합 가이드 사이트.`,
+    ogTitle: industryConfig.tagline,
+    ogDescription: `${industryConfig.name} 업종 홈페이지 제작을 위한 내부 실무 기준서.`,
+    ogType: "website",
+    jsonLdType: "WebSite",
+    searchIntent: "내부용 대시보드 — 전체 가이드 탐색 진입점",
+    navTitle: "Overview",
+    navOrder: 0,
+    icon: "LayoutDashboard",
+  },
+  "/industry-overview": {
+    path: "/industry-overview",
+    title: `${industryConfig.name} 업종 특성 분석 | ${industryConfig.tagline}`,
+    description: `${industryConfig.name} 업종 홈페이지가 일반 서비스업과 어떻게 다른지, 방문자 심리와 전환 구조를 분석합니다.`,
+    ogTitle: `${industryConfig.name} 업종 특성 분석`,
+    ogDescription: `${industryConfig.name} 사이트 방문자 심리, 신뢰 형성 요소, 전환 흐름 가이드.`,
+    ogType: "article",
+    searchIntent: "업종 이해 — 의사결정자 심리와 차별 요소 파악",
+    navTitle: "Industry",
+    navOrder: 1,
+    icon: "Building2",
+  },
+  "/design-guide": {
+    path: "/design-guide",
+    title: `디자인 가이드 | ${industryConfig.tagline}`,
+    description: `${industryConfig.name} 업종에 적합한 브랜드 톤, 컬러, 타이포그래피, 이미지 스타일, 레이아웃 원칙을 정의합니다.`,
+    ogTitle: `${industryConfig.name} 디자인 가이드`,
+    ogDescription: "컬러 시스템, 타이포그래피, 간격, 이미지 스타일 등 디자인 토큰 정의.",
+    ogType: "article",
+    navTitle: "Design Guide",
+    navOrder: 2,
+    icon: "Palette",
+  },
+  "/ui-guide": {
+    path: "/ui-guide",
+    title: `UI 가이드 | ${industryConfig.tagline}`,
+    description: `${industryConfig.name} 사이트 핵심 UI 컴포넌트의 사용 목적, 배치 기준, 접근성 규칙을 정리합니다.`,
+    ogTitle: `${industryConfig.name} UI 가이드`,
+    ogDescription: "헤더, 히어로, 카드, CTA, 폼 등 UI 컴포넌트 가이드.",
+    ogType: "article",
+    navTitle: "UI Guide",
+    navOrder: 3,
+    icon: "Component",
+  },
+  "/ux-guide": {
+    path: "/ux-guide",
+    title: `UX 가이드 | ${industryConfig.tagline}`,
+    description: `${industryConfig.name} 사이트 방문자의 사용자 여정, CTA 배치, 신뢰 요소 위치, 전환 최적화 전략을 정리합니다.`,
+    ogTitle: `${industryConfig.name} UX 가이드`,
+    ogDescription: "사용자 여정, 전환 최적화, 폼 전략, 모바일 UX 가이드.",
+    ogType: "article",
+    navTitle: "UX Guide",
+    navOrder: 4,
+    icon: "Users",
+  },
+  "/page-templates": {
+    path: "/page-templates",
+    title: `페이지 템플릿 | ${industryConfig.tagline}`,
+    description: "실제 고객사 사이트에 바로 적용 가능한 페이지별 구조 템플릿. 필수/선택/조건부 블록 시스템.",
+    ogTitle: "페이지 템플릿",
+    ogDescription: "홈, 서비스, 사례, 인사이트, 문의 등 페이지 블록 시스템.",
+    ogType: "article",
+    navTitle: "Page Templates",
+    navOrder: 5,
+    icon: "FileText",
+  },
+  "/content-guide": {
+    path: "/content-guide",
+    title: `콘텐츠 가이드 | ${industryConfig.tagline}`,
+    description: `${industryConfig.name} 업종에서 신뢰를 높이는 카피라이팅 원칙, 문장 톤, 템플릿, CTA 문구를 정리합니다.`,
+    ogTitle: `${industryConfig.name} 콘텐츠 가이드`,
+    ogDescription: "증거 기반 카피라이팅, 문장 공식, CTA 라이브러리.",
+    ogType: "article",
+    navTitle: "Content Guide",
+    navOrder: 6,
+    icon: "PenTool",
+  },
+  "/seo-geo": {
+    path: "/seo-geo",
+    title: `SEO · GEO 가이드 | ${industryConfig.tagline}`,
+    description: "검색 엔진 최적화와 AI 검색 최적화를 위한 메타 태그, URL 구조, 구조화 데이터, 콘텐츠 전략.",
+    ogTitle: "SEO · GEO 가이드",
+    ogDescription: "메타 태그, JSON-LD, sitemap, AI 검색 최적화 전략.",
+    ogType: "article",
+    navTitle: "SEO / GEO",
+    navOrder: 7,
+    icon: "Search",
+  },
+  "/checklist": {
+    path: "/checklist",
+    title: `실무 체크리스트 | ${industryConfig.tagline}`,
+    description: `${industryConfig.name} 업종 홈페이지 제작 단계별 검수 항목. 디자인, UI, UX, SEO, 런칭 전 체크리스트.`,
+    ogTitle: "실무 체크리스트",
+    ogDescription: "제작 전·디자인·UI·UX·모바일·SEO·런칭 전 체크리스트.",
+    ogType: "article",
+    navTitle: "Checklist",
+    navOrder: 8,
+    icon: "CheckSquare",
+  },
+  "/client-brief": {
+    path: "/client-brief",
+    title: `고객사 브리프 | ${industryConfig.tagline}`,
+    description: "컨설팅 고객사의 정보를 체계적으로 수집·정리하여 사이트 제작 청사진의 기초 데이터를 구성합니다.",
+    ogTitle: "고객사 브리프",
+    ogDescription: "고객사 정보 수집 도구 — 서비스, 타겟, 자산, 브랜드 톤 정리.",
+    ogType: "article",
+    navTitle: "Client Brief",
+    navOrder: 9,
+    icon: "ClipboardList",
+  },
+  "/site-blueprint": {
+    path: "/site-blueprint",
+    title: `사이트 청사진 | ${industryConfig.tagline}`,
+    description: "고객사 브리프를 기반으로 공개용 컨설팅 사이트의 추천 구조, 페이지, 섹션, CTA를 도출합니다.",
+    ogTitle: "사이트 청사진",
+    ogDescription: "브리프 기반 사이트 구조 생성 — 유형 판별, 페이지, 섹션 도출.",
+    ogType: "article",
+    navTitle: "Site Blueprint",
+    navOrder: 10,
+    icon: "Map",
+  },
+  "/implementation-rules": {
+    path: "/implementation-rules",
+    title: `구현 규칙 | ${industryConfig.tagline}`,
+    description: "디자이너·기획자·개발자가 실제 제작 시 바로 적용할 수 있는 조건부 구현 규칙 문서.",
+    ogTitle: "구현 규칙",
+    ogDescription: "조건별 템플릿 선택, CTA 우선순위, 자산 부족 시 대체 구조.",
+    ogType: "article",
+    navTitle: "Impl Rules",
+    navOrder: 11,
+    icon: "Settings",
+  },
+  "/proof-system": {
+    path: "/proof-system",
+    title: `신뢰 증거 체계 | ${industryConfig.tagline}`,
+    description: `${industryConfig.name} 업종 특유의 신뢰 증거 우선순위, 배치 규칙, 부족 시 대체 전략을 구조화합니다.`,
+    ogTitle: "신뢰 증거 체계",
+    ogDescription: "신뢰 요소 우선순위, 페이지별 배치, 자산 부족 시 대체안.",
+    ogType: "article",
+    navTitle: "Proof System",
+    navOrder: 12,
+    icon: "ShieldCheck",
+  },
+};
+
+export const getRouteMeta = (path: string): RouteMeta | undefined => routeMeta[path];
+
+export const getCanonicalUrl = (path: string): string => `${industryConfig.siteUrl}${path === "/" ? "" : path}`;
+
+export const getSortedRoutes = () =>
+  Object.values(routeMeta).sort((a, b) => a.navOrder - b.navOrder);
+
+export const getAdjacentRoutes = (path: string) => {
+  const sorted = getSortedRoutes();
+  const idx = sorted.findIndex((r) => r.path === path);
+  return {
+    prev: idx > 0 ? sorted[idx - 1] : null,
+    next: idx < sorted.length - 1 ? sorted[idx + 1] : null,
+  };
+};

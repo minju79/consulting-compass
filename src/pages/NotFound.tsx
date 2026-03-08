@@ -1,21 +1,33 @@
-import { useLocation } from "react-router-dom";
-import { useEffect } from "react";
+import { Link } from "react-router-dom";
+import { ArrowLeft, Search } from "lucide-react";
+import { usePageMeta } from "@/hooks/usePageMeta";
 
 const NotFound = () => {
-  const location = useLocation();
-
-  useEffect(() => {
-    console.error("404 Error: User attempted to access non-existent route:", location.pathname);
-  }, [location.pathname]);
+  usePageMeta();
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">404</h1>
-        <p className="mb-4 text-xl text-muted-foreground">Oops! Page not found</p>
-        <a href="/" className="text-primary underline hover:text-primary/90">
-          Return to Home
-        </a>
+    <div className="flex min-h-screen items-center justify-center bg-background px-6">
+      <div className="text-center max-w-md">
+        <span className="text-7xl font-extrabold text-accent/20 font-display">404</span>
+        <h1 className="text-2xl font-bold text-foreground mt-4 mb-2">페이지를 찾을 수 없습니다</h1>
+        <p className="text-sm text-muted-foreground mb-8 leading-relaxed">
+          요청하신 페이지가 존재하지 않거나 이동되었습니다.<br />
+          아래 링크를 통해 가이드 사이트로 돌아가세요.
+        </p>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            <ArrowLeft className="h-4 w-4" /> 메인으로 돌아가기
+          </Link>
+          <Link
+            to="/checklist"
+            className="inline-flex items-center gap-2 rounded-lg border bg-card px-5 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-secondary"
+          >
+            <Search className="h-4 w-4" /> 체크리스트 보기
+          </Link>
+        </div>
       </div>
     </div>
   );
