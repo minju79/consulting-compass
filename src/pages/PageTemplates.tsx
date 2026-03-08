@@ -2,6 +2,8 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/guide/PageHeader";
 import { SectionBlock } from "@/components/guide/SectionBlock";
 import { BadgeLabel } from "@/components/guide/BadgeLabel";
+import { QuickSummary } from "@/components/guide/QuickSummary";
+import { InPageToc } from "@/components/guide/InPageToc";
 import { templateBlueprints } from "@/data/templateBlueprints";
 
 const statusColors: Record<string, "required" | "optional" | "conditional" | "prohibited"> = {
