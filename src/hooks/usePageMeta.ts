@@ -86,9 +86,12 @@ export function applyPageMeta(meta: RouteMeta, pathname: string) {
     ldData.mainEntity = [];
   }
 
-  if (schemaType === "Article") {
+  if (schemaType === "Article" || schemaType === "TechArticle") {
     ldData.author = { "@type": "Organization", name: industryConfig.tagline };
     ldData.publisher = { "@type": "Organization", name: industryConfig.tagline };
+    if (schemaType === "TechArticle") {
+      ldData.proficiencyLevel = "Expert";
+    }
   }
 
   ldScript.textContent = JSON.stringify(ldData);

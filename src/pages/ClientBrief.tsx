@@ -59,13 +59,16 @@ const briefFields: BriefField[] = [
 ];
 
 const ClientBrief = () => {
-  const [formData, setFormData] = useState<BriefData>(() => loadBrief());
+  const [briefStatus] = useState(() => loadBriefWithStatus());
+  const [formData, setFormData] = useState<BriefData>(briefStatus.data);
   const [importError, setImportError] = useState<string | null>(null);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "failed">("idle");
+  const [migrationDismissed, setMigrationDismissed] = useState(false);
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout>>();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const categories = [...new Set(briefFields.map((f) => f.category))];
   const analysis = analyzeBrief(formData);
+  const showMigration = briefStatus.migrated && !migrationDismissed;
 
   // Auto-save with retry
   const doSave = useCallback((data: BriefData, retryCount = 0) => {
