@@ -2,8 +2,12 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/guide/PageHeader";
 import { SectionBlock } from "@/components/guide/SectionBlock";
 import { BadgeLabel } from "@/components/guide/BadgeLabel";
-import { useState } from "react";
+import { QuickSummary } from "@/components/guide/QuickSummary";
+import { InPageToc } from "@/components/guide/InPageToc";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { checklistGroups } from "@/data/checklistDefinitions";
+
+const CHECKLIST_STORAGE_KEY = "consulting-guide-checklist";
 
 const categoryLabels: Record<string, string> = {
   planning: "기획",
@@ -18,13 +22,46 @@ const categoryLabels: Record<string, string> = {
   launch: "런칭",
 };
 
+function loadChecked(): Record<string, boolean> {
+  try {
+    const raw = localStorage.getItem(CHECKLIST_STORAGE_KEY);
+    if (!raw) return {};
+    return JSON.parse(raw);
+  } catch {
+    return {};
+  }
+}
+
+function saveChecked(data: Record<string, boolean>) {
+  try {
+    localStorage.setItem(CHECKLIST_STORAGE_KEY, JSON.stringify(data));
+  } catch {
+    // ignore
+  }
+}
+
 const Checklist = () => {
-  const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
+  const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>(() => loadChecked());
+  const saveTimer = useRef<ReturnType<typeof setTimeout>>();
+
+  // Auto-save to localStorage
+  const schedSave = useCallback((data: Record<string, boolean>) => {
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => saveChecked(data), 300);
+  }, []);
 
   const toggleItem = (groupId: string, index: number) => {
     const key = `${groupId}-${index}`;
-    setCheckedItems((prev) => ({ ...prev, [key]: !prev[key] }));
+    setCheckedItems((prev) => {
+      const next = { ...prev, [key]: !prev[key] };
+      schedSave(next);
+      return next;
+    });
   };
+
+  useEffect(() => {
+    return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
+  }, []);
 
   const getGroupProgress = (group: typeof checklistGroups[number]) => {
     const checked = group.items.filter((_, i) => checkedItems[`${group.id}-${i}`]).length;
@@ -34,6 +71,11 @@ const Checklist = () => {
   const totalChecked = Object.values(checkedItems).filter(Boolean).length;
   const totalItems = checklistGroups.reduce((sum, g) => sum + g.items.length, 0);
 
+  const tocItems = checklistGroups.map((g) => ({
+    id: g.id,
+    label: `${categoryLabels[g.category]} — ${g.title}`,
+  }));
+
   return (
     <AppLayout>
       <PageHeader
@@ -41,6 +83,14 @@ const Checklist = () => {
         title="실무 체크리스트"
         description="컨설팅 업종 홈페이지 제작의 각 단계별 검수 항목입니다. 기획부터 런칭까지 10개 카테고리를 체크하세요."
       />
+
+      <QuickSummary points={[
+        "체크 상태는 브라우저에 자동 저장됩니다. 같은 기기에서 다시 열면 이어서 체크할 수 있습니다.",
+        "기획 → 디자인 → UI → UX → 콘텐츠 → SEO → 접근성 → 모바일 → 신뢰 증거 → 런칭 순서로 검수하세요.",
+        "모든 카테고리 100% 완료 후 런칭 승인을 진행하세요.",
+      ]} />
+
+      <InPageToc items={tocItems} />
 
       {/* 전체 진행률 */}
       <div className="rounded-lg border bg-card p-4 mb-8">

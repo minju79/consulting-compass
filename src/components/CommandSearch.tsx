@@ -13,6 +13,11 @@ const iconMap: Record<string, string> = {
   CheckSquare: "✅", ClipboardList: "📋", Map: "🗺️", Settings: "⚙️", ShieldCheck: "🛡️",
 };
 
+const groupLabels: Record<string, string> = {
+  guide: "📘 가이드",
+  tool: "🛠️ 제작 도구",
+};
+
 export function CommandSearch() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
@@ -30,20 +35,26 @@ export function CommandSearch() {
     return () => document.removeEventListener("keydown", down);
   }, []);
 
-  const renderGroup = (routes: typeof guideRoutes, label: string) => (
-    <CommandGroup heading={label}>
+  const renderGroup = (routes: typeof guideRoutes, group: "guide" | "tool") => (
+    <CommandGroup heading={groupLabels[group] || industryConfig.navGroups[group]}>
       {routes.map((r) => (
         <CommandItem
           key={r.path}
           value={`${r.navTitle} ${r.breadcrumbLabel} ${r.description} ${r.searchIntent || ""} ${(r.keywords || []).join(" ")}`}
           onSelect={() => { navigate(r.path); setOpen(false); }}
+          className="flex items-start gap-3 py-2.5"
         >
-          <span className="mr-2">{iconMap[r.icon] || "📄"}</span>
+          <span className="text-base mt-0.5 shrink-0">{iconMap[r.icon] || "📄"}</span>
           <div className="flex-1 min-w-0">
-            <span className="font-medium">{r.navTitle}</span>
-            <span className="ml-2 text-xs text-muted-foreground truncate">{r.breadcrumbLabel}</span>
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-sm">{r.navTitle}</span>
+              <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded shrink-0">
+                {r.group === "guide" ? "가이드" : "도구"}
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground truncate mt-0.5">{r.breadcrumbLabel} — {r.description.slice(0, 60)}{r.description.length > 60 ? "…" : ""}</p>
           </div>
-          <span className="ml-auto text-[10px] text-muted-foreground shrink-0">{r.path}</span>
+          <span className="ml-auto text-[10px] text-muted-foreground/50 shrink-0 mt-1 hidden sm:block">{r.path}</span>
         </CommandItem>
       ))}
     </CommandGroup>
@@ -63,16 +74,17 @@ export function CommandSearch() {
         </kbd>
       </button>
       <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput placeholder="페이지 검색... (이름, 설명, 키워드)" />
+        <CommandInput placeholder="페이지 검색... (이름, 설명, 키워드, 사용 목적)" />
         <CommandList>
           <CommandEmpty>
             <div className="py-6 text-center">
               <p className="text-sm text-muted-foreground">검색 결과가 없습니다.</p>
               <p className="text-xs text-muted-foreground mt-1">다른 키워드로 시도해 보세요.</p>
+              <p className="text-[10px] text-muted-foreground/50 mt-2">팁: 페이지 이름, 설명, 키워드, 검색 의도로 검색할 수 있습니다.</p>
             </div>
           </CommandEmpty>
-          {renderGroup(guideRoutes, industryConfig.navGroups.guide)}
-          {renderGroup(toolRoutes, industryConfig.navGroups.tool)}
+          {renderGroup(guideRoutes, "guide")}
+          {renderGroup(toolRoutes, "tool")}
         </CommandList>
       </CommandDialog>
     </>

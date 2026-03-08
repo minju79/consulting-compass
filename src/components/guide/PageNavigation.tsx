@@ -1,16 +1,16 @@
-import { ReactNode } from "react";
+import { forwardRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { getAdjacentRoutes } from "@/data/routeMeta";
 
-export function PageNavigation() {
+export const PageNavigation = forwardRef<HTMLElement>(function PageNavigation(_props, ref) {
   const { pathname } = useLocation();
   const { prev, next } = getAdjacentRoutes(pathname);
 
   if (!prev && !next) return null;
 
   return (
-    <nav aria-label="페이지 이동" className="mt-12 pt-6 border-t flex items-center justify-between gap-4">
+    <nav ref={ref} aria-label="페이지 이동" className="mt-12 pt-6 border-t flex items-center justify-between gap-4">
       {prev ? (
         <Link
           to={prev.path}
@@ -41,4 +41,4 @@ export function PageNavigation() {
       )}
     </nav>
   );
-}
+});
