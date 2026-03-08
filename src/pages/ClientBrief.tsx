@@ -217,6 +217,45 @@ const ClientBrief = () => {
         </div>
       )}
 
+      {/* Schema migration banner */}
+      {showMigration && (
+        <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-4 mb-6">
+          <div className="flex items-start gap-2">
+            <span className="text-yellow-600 text-sm mt-0.5">⚠</span>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-yellow-700">스키마 버전 변경 감지</p>
+              <p className="text-xs text-yellow-600/80 mt-1">
+                이전 버전(v{briefStatus.migrationReason?.replace(/\D/g, "").slice(0, 1) || "?"})의 브리프 데이터가 현재 버전(v{BRIEF_SCHEMA_VERSION})으로 자동 마이그레이션되었습니다.
+                기존 데이터를 유지하거나, 새로 시작할 수 있습니다.
+              </p>
+              <div className="flex gap-2 mt-3">
+                <button
+                  onClick={() => {
+                    saveBrief(formData);
+                    setMigrationDismissed(true);
+                    toast.success("마이그레이션된 데이터를 유지합니다");
+                  }}
+                  className="inline-flex items-center gap-1 rounded-md bg-yellow-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-yellow-700 transition-colors"
+                >
+                  기존 데이터 유지
+                </button>
+                <button
+                  onClick={() => {
+                    setFormData({ ...emptyBrief });
+                    saveBrief(emptyBrief);
+                    setMigrationDismissed(true);
+                    toast.success("브리프가 초기화되었습니다");
+                  }}
+                  className="inline-flex items-center gap-1 rounded-md border border-yellow-500/30 bg-background px-3 py-1.5 text-xs font-medium text-yellow-700 hover:bg-yellow-500/10 transition-colors"
+                >
+                  <RotateCcw className="h-3 w-3" /> 새로 시작
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Summary Dashboard */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <div className="rounded-lg border bg-card p-5 col-span-1 md:col-span-2">
