@@ -358,7 +358,8 @@ describe("brief JSON import/export", () => {
     const result = importBriefJson(json);
     expect(result.success).toBe(true);
     expect(result.data?.companyName).toBe("X");
-    expect((result.data as Record<string, unknown>)["unknownField"]).toBeUndefined();
+    // unknownField should not be in normalized data
+    expect("unknownField" in (result.data || {})).toBe(false);
   });
 });
 
