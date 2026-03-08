@@ -4,6 +4,8 @@ import { SectionBlock } from "@/components/guide/SectionBlock";
 import { BadgeLabel } from "@/components/guide/BadgeLabel";
 import { CopyBlock } from "@/components/guide/CopyBlock";
 import { InfoList } from "@/components/guide/InfoList";
+import { QuickSummary } from "@/components/guide/QuickSummary";
+import { InPageToc } from "@/components/guide/InPageToc";
 import { proofAssets, pageProofRules } from "@/data/proofSystemRules";
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
