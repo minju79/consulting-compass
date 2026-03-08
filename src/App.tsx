@@ -12,6 +12,10 @@ import PageTemplates from "./pages/PageTemplates";
 import ContentGuide from "./pages/ContentGuide";
 import SeoGeo from "./pages/SeoGeo";
 import Checklist from "./pages/Checklist";
+import ClientBrief from "./pages/ClientBrief";
+import SiteBlueprint from "./pages/SiteBlueprint";
+import ImplementationRules from "./pages/ImplementationRules";
+import ProofSystem from "./pages/ProofSystem";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +36,10 @@ const App = () => (
           <Route path="/content-guide" element={<ContentGuide />} />
           <Route path="/seo-geo" element={<SeoGeo />} />
           <Route path="/checklist" element={<Checklist />} />
+          <Route path="/client-brief" element={<ClientBrief />} />
+          <Route path="/site-blueprint" element={<SiteBlueprint />} />
+          <Route path="/implementation-rules" element={<ImplementationRules />} />
+          <Route path="/proof-system" element={<ProofSystem />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
