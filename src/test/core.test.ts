@@ -2,12 +2,14 @@ import { describe, it, expect } from "vitest";
 import {
   analyzeBrief, emptyBrief, exampleBrief, generateBlueprints,
   exportBriefJson, importBriefJson, generateLovablePrompt,
+  normalizeBrief, getProofFallbacks,
   BriefData, BRIEF_SCHEMA_VERSION,
 } from "@/lib/brief";
 import {
   getRouteMeta, getSortedRoutes, getCanonicalUrl, getBreadcrumbs,
-  fallbackMeta, routeMeta, getRoutesByGroup,
+  fallbackMeta, getRoutesByGroup,
 } from "@/data/routeMeta";
+import { industryConfig } from "@/data/industryConfig";
 
 // ─── Route Meta ───
 
@@ -19,8 +21,7 @@ describe("routeMeta", () => {
       expect(r.title).toBeTruthy();
       expect(r.description).toBeTruthy();
       expect(r.ogTitle).toBeTruthy();
-      expect(r.ogDescription).toBeTruthy();
-      expect(r.ogType).toBeTruthy();
+      expect(r.schemaType).toBeTruthy();
       expect(r.icon).toBeTruthy();
       expect(r.group).toMatch(/^(guide|tool)$/);
       expect(r.breadcrumbLabel).toBeTruthy();
@@ -33,8 +34,9 @@ describe("routeMeta", () => {
     expect(meta.title).toContain("찾을 수 없습니다");
   });
 
-  it("fallbackMeta has noindex, nofollow", () => {
+  it("fallbackMeta has noindex, nofollow and schemaType", () => {
     expect(fallbackMeta.robots).toBe("noindex, nofollow");
+    expect(fallbackMeta.schemaType).toBe("WebPage");
     expect(fallbackMeta.ogTitle).toBeTruthy();
   });
 
@@ -69,24 +71,49 @@ describe("routeMeta", () => {
     tools.forEach((r) => expect(r.group).toBe("tool"));
   });
 
-  it("all routes have ogImage", () => {
+  it("all routes have ogImage and schemaType", () => {
     getSortedRoutes().forEach((r) => {
       expect(r.ogImage).toBeTruthy();
+      expect(r.schemaType).toBeTruthy();
     });
   });
 
   it("tool routes have noindex robots", () => {
-    const tools = getRoutesByGroup("tool");
-    tools.forEach((r) => {
+    getRoutesByGroup("tool").forEach((r) => {
       expect(r.robots).toContain("noindex");
     });
   });
 
   it("guide routes have index robots", () => {
-    const guides = getRoutesByGroup("guide");
-    guides.forEach((r) => {
+    getRoutesByGroup("guide").forEach((r) => {
       expect(r.robots).toContain("index");
     });
+  });
+
+  it("homepage has WebSite schemaType", () => {
+    expect(getRouteMeta("/").schemaType).toBe("WebSite");
+  });
+
+  it("page-templates has CollectionPage schemaType", () => {
+    expect(getRouteMeta("/page-templates").schemaType).toBe("CollectionPage");
+  });
+
+  it("all routes have keywords", () => {
+    getSortedRoutes().forEach((r) => {
+      expect(r.keywords).toBeDefined();
+      expect(r.keywords!.length).toBeGreaterThan(0);
+    });
+  });
+});
+
+// ─── Industry Config ───
+
+describe("industryConfig", () => {
+  it("has required branding fields", () => {
+    expect(industryConfig.shortTagline).toBeTruthy();
+    expect(industryConfig.version).toBeTruthy();
+    expect(industryConfig.navGroups.guide).toBeTruthy();
+    expect(industryConfig.navGroups.tool).toBeTruthy();
   });
 });
 
@@ -99,7 +126,6 @@ describe("brief analysis", () => {
     expect(analysis.requiredCompletionRate).toBe(0);
     expect(analysis.missingRequired.length).toBe(5);
     expect(analysis.proofScore).toBe(0);
-    expect(analysis.siteType).toBeTruthy();
   });
 
   it("analyzes example brief with high completion", () => {
@@ -108,12 +134,12 @@ describe("brief analysis", () => {
     expect(analysis.requiredCompletionRate).toBe(100);
     expect(analysis.proofScore).toBeGreaterThan(5);
     expect(analysis.missingRequired.length).toBe(0);
+    expect(analysis.recommendedSecondaryCta).toBeTruthy();
   });
 
   it("detects case-study-centric type", () => {
     const brief: BriefData = { ...emptyBrief, hasCases: true, hasMetrics: true, companyName: "T" };
-    const analysis = analyzeBrief(brief);
-    expect(analysis.siteType).toBe("케이스 스터디 중심형");
+    expect(analyzeBrief(brief).siteType).toBe("케이스 스터디 중심형");
   });
 
   it("detects expert-centric type for boutique", () => {
@@ -132,10 +158,63 @@ describe("brief analysis", () => {
 
   it("recommends minimal scale for low proof score", () => {
     const brief: BriefData = { ...emptyBrief, companyName: "T", primaryCta: "상담 문의" };
-    const analysis = analyzeBrief(brief);
-    expect(analysis.scaleRecommendation).toBe("최소");
+    expect(analyzeBrief(brief).scaleRecommendation).toBe("최소");
+  });
+
+  it("proof summary includes strength values", () => {
+    const analysis = analyzeBrief(exampleBrief);
+    analysis.proofSummary.forEach((p) => {
+      expect(p.strength).toBeGreaterThanOrEqual(1);
+      expect(p.strength).toBeLessThanOrEqual(5);
+    });
+  });
+
+  it("has content and download strategy flags", () => {
+    const analysis = analyzeBrief(exampleBrief);
+    expect(analysis.hasContentStrategy).toBe(true);
+    expect(analysis.hasDownloadStrategy).toBe(true);
   });
 });
+
+// ─── Normalize ───
+
+describe("normalizeBrief", () => {
+  it("fills missing fields with defaults", () => {
+    const result = normalizeBrief({ companyName: "Test" });
+    expect(result.companyName).toBe("Test");
+    expect(result.consultingType).toBe("");
+    expect(result.leadMethod).toEqual([]);
+    expect(result._schemaVersion).toBe(BRIEF_SCHEMA_VERSION);
+  });
+
+  it("ignores wrong types", () => {
+    const result = normalizeBrief({ companyName: 123, hasCases: "yes" });
+    expect(result.companyName).toBe("");
+    expect(result.hasCases).toBeNull();
+  });
+});
+
+// ─── Proof Fallbacks ───
+
+describe("getProofFallbacks", () => {
+  it("returns fallbacks for missing assets", () => {
+    const brief: BriefData = { ...emptyBrief, companyName: "T", hasCases: false, hasMetrics: false };
+    const analysis = analyzeBrief(brief);
+    const fallbacks = getProofFallbacks(analysis);
+    const active = fallbacks.filter((f) => f.active);
+    expect(active.length).toBeGreaterThanOrEqual(2);
+    active.forEach((f) => expect(f.fallback).toBeTruthy());
+  });
+
+  it("returns no active fallbacks when all assets owned", () => {
+    const analysis = analyzeBrief(exampleBrief);
+    const fallbacks = getProofFallbacks(analysis);
+    const active = fallbacks.filter((f) => f.active);
+    expect(active.length).toBeLessThanOrEqual(1); // webinars may be false
+  });
+});
+
+// ─── Blueprint Generation ───
 
 describe("blueprint generation", () => {
   it("generates blueprints from example brief", () => {
@@ -148,17 +227,14 @@ describe("blueprint generation", () => {
 
   it("generates fewer blueprints for minimal brief", () => {
     const minimal: BriefData = { ...emptyBrief, companyName: "테스트", consultingType: "경영 전략", coreServices: "전략", targetClients: "기업", primaryCta: "상담 문의" };
-    const analysis = analyzeBrief(minimal);
-    const blueprints = generateBlueprints(minimal, analysis);
-    const exampleAnalysis = analyzeBrief(exampleBrief);
-    const exampleBlueprints = generateBlueprints(exampleBrief, exampleAnalysis);
+    const blueprints = generateBlueprints(minimal, analyzeBrief(minimal));
+    const exampleBlueprints = generateBlueprints(exampleBrief, analyzeBrief(exampleBrief));
     expect(blueprints.length).toBeLessThan(exampleBlueprints.length);
   });
 
   it("always includes homepage and contact", () => {
     const minimal: BriefData = { ...emptyBrief, companyName: "T" };
-    const analysis = analyzeBrief(minimal);
-    const blueprints = generateBlueprints(minimal, analysis);
+    const blueprints = generateBlueprints(minimal, analyzeBrief(minimal));
     const names = blueprints.map((b) => b.name);
     expect(names).toContain("홈페이지");
     expect(names).toContain("문의/상담 신청");
@@ -166,29 +242,25 @@ describe("blueprint generation", () => {
 
   it("includes industry page when multiple industries", () => {
     const brief: BriefData = { ...emptyBrief, companyName: "T", industries: "금융, 제조, IT" };
-    const analysis = analyzeBrief(brief);
-    const blueprints = generateBlueprints(brief, analysis);
+    const blueprints = generateBlueprints(brief, analyzeBrief(brief));
     expect(blueprints.some((b) => b.name === "산업/전문분야 페이지")).toBe(true);
   });
 
   it("marks prohibited blocks for missing proof", () => {
     const brief: BriefData = { ...emptyBrief, companyName: "T", hasTestimonials: false };
-    const analysis = analyzeBrief(brief);
-    const blueprints = generateBlueprints(brief, analysis);
+    const blueprints = generateBlueprints(brief, analyzeBrief(brief));
     const home = blueprints.find((b) => b.name === "홈페이지");
-    const testimonial = home?.blocks.find((b) => b.name === "추천사");
-    expect(testimonial?.status).toBe("prohibited");
+    expect(home?.blocks.find((b) => b.name === "추천사")?.status).toBe("prohibited");
   });
 
   it("includes asset fallbacks in blueprints", () => {
     const brief: BriefData = { ...emptyBrief, companyName: "T", hasClientLogos: false, hasMetrics: false };
-    const analysis = analyzeBrief(brief);
-    const blueprints = generateBlueprints(brief, analysis);
-    const home = blueprints[0];
-    expect(home.assetFallbacks).toBeDefined();
-    expect(home.assetFallbacks!.length).toBeGreaterThan(0);
+    const blueprints = generateBlueprints(brief, analyzeBrief(brief));
+    expect(blueprints[0].assetFallbacks!.length).toBeGreaterThan(0);
   });
 });
+
+// ─── JSON Import/Export ───
 
 describe("brief JSON import/export", () => {
   it("exports and imports correctly", () => {
@@ -199,41 +271,45 @@ describe("brief JSON import/export", () => {
   });
 
   it("rejects invalid JSON", () => {
-    const result = importBriefJson("not json at all");
-    expect(result.success).toBe(false);
-    expect(result.error).toBe("invalid_json");
+    expect(importBriefJson("not json").error).toBe("invalid_json");
   });
 
-  it("rejects invalid shape", () => {
-    const result = importBriefJson('{"foo": "bar"}');
-    expect(result.success).toBe(false);
-    expect(result.error).toBe("invalid_shape");
+  it("rejects empty data", () => {
+    expect(importBriefJson('{"foo": "bar"}').error).toBe("empty_data");
   });
 
   it("rejects array input", () => {
-    const result = importBriefJson("[1,2,3]");
-    expect(result.success).toBe(false);
-    expect(result.error).toBe("invalid_shape");
+    expect(importBriefJson("[1,2,3]").error).toBe("invalid_shape");
+  });
+
+  it("warns on version mismatch but still imports", () => {
+    const json = JSON.stringify({ _schemaVersion: 999, companyName: "Test", consultingType: "IT", coreServices: "DX" });
+    const result = importBriefJson(json);
+    expect(result.success).toBe(true);
+    expect(result.warning).toBeTruthy();
   });
 });
 
+// ─── Prompt Generation ───
+
 describe("prompt generation", () => {
-  it("generates comprehensive prompt from example brief", () => {
+  it("generates comprehensive prompt", () => {
     const analysis = analyzeBrief(exampleBrief);
     const blueprints = generateBlueprints(exampleBrief, analysis);
     const prompt = generateLovablePrompt(exampleBrief, analysis, blueprints);
     expect(prompt).toContain(exampleBrief.companyName);
     expect(prompt).toContain("필수 블록");
     expect(prompt).toContain("금지 블록");
+    expect(prompt).toContain("조건부 블록");
+    expect(prompt).toContain("보조 CTA");
     expect(prompt).toContain("허위");
     expect(prompt.length).toBeGreaterThan(500);
   });
 
-  it("includes proof fallbacks in prompt when assets missing", () => {
+  it("includes proof fallbacks when assets missing", () => {
     const brief: BriefData = { ...emptyBrief, companyName: "Test", consultingType: "IT", coreServices: "DX", targetClients: "기업", primaryCta: "상담 문의", hasClientLogos: false };
     const analysis = analyzeBrief(brief);
-    const blueprints = generateBlueprints(brief, analysis);
-    const prompt = generateLovablePrompt(brief, analysis, blueprints);
+    const prompt = generateLovablePrompt(brief, analysis, generateBlueprints(brief, analysis));
     expect(prompt).toContain("대체 전략");
   });
 });

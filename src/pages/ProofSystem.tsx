@@ -7,7 +7,7 @@ import { InfoList } from "@/components/guide/InfoList";
 import { proofAssets, pageProofRules } from "@/data/proofSystemRules";
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { loadBrief, analyzeBrief, generateBlueprints } from "@/lib/brief";
+import { loadBrief, analyzeBrief, generateBlueprints, getProofFallbacks } from "@/lib/brief";
 
 const pageLabels: Record<string, string> = {
   homepage: "홈페이지", service: "서비스 페이지", industry: "산업/전문분야 페이지",
@@ -19,9 +19,11 @@ const ProofSystem = () => {
   const analysis = useMemo(() => analyzeBrief(brief), [brief]);
   const hasBrief = !!brief.companyName || !!brief.consultingType;
   const blueprints = useMemo(() => hasBrief ? generateBlueprints(brief, analysis) : [], [brief, analysis, hasBrief]);
+  const proofFallbacks = useMemo(() => getProofFallbacks(analysis), [analysis]);
 
   // Proof-aware summary for copy
-  const proofCopySummary = analysis.proofSummary.map((p) => `- ${p.label}: ${p.status}`).join("\n");
+  const proofCopySummary = analysis.proofSummary.map((p) => `- ${p.label}: ${p.status} (강도 ${p.strength}/5)`).join("\n");
+  const activeFallbacks = proofFallbacks.filter((f) => f.active);
 
   return (
     <AppLayout>
@@ -35,10 +37,10 @@ const ProofSystem = () => {
       <div className="rounded-lg border bg-accent/5 border-accent/20 p-4 mb-6">
         <p className="text-sm text-foreground font-medium mb-1">📋 빠른 적용 포인트</p>
         <ul className="text-xs text-muted-foreground space-y-0.5">
-          <li>• 증거 자산은 <strong className="text-foreground">우선순위가 있으며</strong>, 모든 것을 다 보여줄 필요는 없습니다.</li>
+          <li>• 증거 자산은 <strong className="text-foreground">우선순위와 강도가 있으며</strong>, 모든 것을 다 보여줄 필요는 없습니다.</li>
           <li>• 보유하지 않은 자산에 대해서는 <strong className="text-foreground">반드시 대체 전략을 적용</strong>하세요.</li>
           <li>• 허위 자산 (고객사, 수치, 추천사, 수상 등)은 <strong className="text-destructive">절대 생성 금지</strong>입니다.</li>
-          {hasBrief && <li>• 현재 브리프 기반 증거 점수: <strong className="text-accent">{analysis.proofScore}/8</strong></li>}
+          {hasBrief && <li>• 현재 브리프 기반 증거 점수: <strong className="text-accent">{analysis.proofScore}/8</strong> · 대체 필요: {activeFallbacks.length}개</li>}
         </ul>
       </div>
 
@@ -57,7 +59,7 @@ const ProofSystem = () => {
                 p.status === "검토 필요" ? "bg-yellow-500/5 border-yellow-500/20" : "bg-muted"
               }`}>
                 <span className="text-xs text-muted-foreground">{p.label}</span>
-                <div className="mt-1">
+                <div className="mt-1 flex items-center gap-1">
                   <BadgeLabel type={
                     p.status === "보유" ? "required" :
                     p.status === "부족" ? "prohibited" :
@@ -65,10 +67,19 @@ const ProofSystem = () => {
                   }>
                     {p.status}
                   </BadgeLabel>
+                  <span className="text-[9px] text-muted-foreground">강도 {p.strength}/5</span>
                 </div>
               </div>
             ))}
           </div>
+          {activeFallbacks.length > 0 && (
+            <div className="mt-3 rounded-md border border-destructive/20 bg-destructive/5 p-3">
+              <p className="text-xs font-semibold text-destructive mb-1">대체 전략 필요 ({activeFallbacks.length}개)</p>
+              {activeFallbacks.map((f) => (
+                <p key={f.asset} className="text-xs text-muted-foreground">• {f.asset}: {f.fallback}</p>
+              ))}
+            </div>
+          )}
           <div className="mt-3 flex flex-wrap gap-3 text-xs">
             <Link to="/client-brief" className="text-accent hover:underline">브리프 수정 →</Link>
             <Link to="/site-blueprint" className="text-accent hover:underline">청사진 보기 →</Link>
@@ -243,7 +254,7 @@ const ProofSystem = () => {
       {/* Proof summary copy block */}
       {hasBrief && (
         <SectionBlock id="proof-copy" title="증거 자산 현황 (복사용)">
-          <CopyBlock content={`# ${brief.companyName || "[회사명]"} 증거 자산 현황\n\n${proofCopySummary}\n\n점수: ${analysis.proofScore}/8`} label="증거 자산 현황 요약" />
+          <CopyBlock content={`# ${brief.companyName || "[회사명]"} 증거 자산 현황\n\n${proofCopySummary}\n\n점수: ${analysis.proofScore}/8\n\n## 대체 전략\n${activeFallbacks.length > 0 ? activeFallbacks.map((f) => `- ${f.asset}: ${f.fallback}`).join("\n") : "모두 보유 — 대체 불필요"}`} label="증거 자산 현황 요약" />
         </SectionBlock>
       )}
 

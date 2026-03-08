@@ -26,7 +26,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         <div className="flex-1 flex flex-col min-w-0">
           <header role="banner" className="h-14 flex items-center border-b bg-card/80 backdrop-blur-sm sticky top-0 z-30 px-4">
             <SidebarTrigger className="mr-3" />
-            <span className="text-sm font-medium text-muted-foreground flex-1">
+            <span className="text-sm font-medium text-muted-foreground flex-1 truncate">
               {industryConfig.tagline}
             </span>
             <CommandSearch />
@@ -38,7 +38,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             </div>
           </main>
           <footer role="contentinfo" className="border-t py-4 px-6 text-center text-xs text-muted-foreground">
-            © {new Date().getFullYear()} {industryConfig.tagline} · 내부 기준서
+            © {new Date().getFullYear()} {industryConfig.tagline} · v{industryConfig.version}
           </footer>
         </div>
       </div>
