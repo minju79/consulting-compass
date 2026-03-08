@@ -126,8 +126,8 @@ const ClientBrief = () => {
     e.target.value = "";
   };
   const handleManualSave = () => {
-    const ok = saveBrief(formData);
-    if (ok) toast.success("저장 완료");
+    const result = saveBrief(formData);
+    if (result.success) toast.success("저장 완료");
     else toast.error("저장 실패");
   };
 
