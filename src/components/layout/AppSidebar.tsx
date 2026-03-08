@@ -14,7 +14,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useLocation } from "react-router-dom";
+import { getRoutesByGroup } from "@/data/routeMeta";
 import {
   Sidebar,
   SidebarContent,
@@ -32,26 +32,8 @@ const iconMap: Record<string, React.ElementType> = {
   PenTool, Search, CheckSquare, ClipboardList, Map, Settings, ShieldCheck,
 };
 
-const guideNav = [
-  { title: "Overview", url: "/", icon: "LayoutDashboard" },
-  { title: "Industry", url: "/industry-overview", icon: "Building2" },
-  { title: "Design Guide", url: "/design-guide", icon: "Palette" },
-  { title: "UI Guide", url: "/ui-guide", icon: "Component" },
-  { title: "UX Guide", url: "/ux-guide", icon: "Users" },
-  { title: "Page Templates", url: "/page-templates", icon: "FileText" },
-  { title: "Content Guide", url: "/content-guide", icon: "PenTool" },
-  { title: "SEO / GEO", url: "/seo-geo", icon: "Search" },
-  { title: "Checklist", url: "/checklist", icon: "CheckSquare" },
-];
-
-const toolNav = [
-  { title: "Client Brief", url: "/client-brief", icon: "ClipboardList" },
-  { title: "Site Blueprint", url: "/site-blueprint", icon: "Map" },
-  { title: "Impl Rules", url: "/implementation-rules", icon: "Settings" },
-  { title: "Proof System", url: "/proof-system", icon: "ShieldCheck" },
-];
-
-function NavGroup({ label, items, collapsed }: { label: string; items: typeof guideNav; collapsed: boolean }) {
+function NavGroup({ label, group, collapsed }: { label: string; group: "guide" | "tool"; collapsed: boolean }) {
+  const items = getRoutesByGroup(group);
   return (
     <SidebarGroup>
       <SidebarGroupLabel className="text-sidebar-foreground/50 text-[10px] uppercase tracking-widest">
@@ -62,16 +44,16 @@ function NavGroup({ label, items, collapsed }: { label: string; items: typeof gu
           {items.map((item) => {
             const Icon = iconMap[item.icon] || LayoutDashboard;
             return (
-              <SidebarMenuItem key={item.url}>
+              <SidebarMenuItem key={item.path}>
                 <SidebarMenuButton asChild>
                   <NavLink
-                    to={item.url}
-                    end={item.url === "/"}
+                    to={item.path}
+                    end={item.path === "/"}
                     className="transition-colors hover:bg-sidebar-accent"
                     activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
                   >
                     <Icon className="mr-2 h-4 w-4 shrink-0" />
-                    {!collapsed && <span className="text-sm">{item.title}</span>}
+                    {!collapsed && <span className="text-sm">{item.navTitle}</span>}
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -102,8 +84,8 @@ export function AppSidebar() {
             </div>
           )}
         </div>
-        <NavGroup label="가이드" items={guideNav} collapsed={collapsed} />
-        <NavGroup label="제작 도구" items={toolNav} collapsed={collapsed} />
+        <NavGroup label="가이드" group="guide" collapsed={collapsed} />
+        <NavGroup label="제작 도구" group="tool" collapsed={collapsed} />
       </SidebarContent>
     </Sidebar>
   );

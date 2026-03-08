@@ -1,7 +1,8 @@
 {
-  "name": "vite_react_shadcn_ts",
+  "name": "consulting-web-guide",
   "private": true,
-  "version": "0.0.0",
+  "version": "2.0.0",
+  "description": "컨설팅 업종 웹사이트 제작 가이드 시스템 — 내부 가이드 + 브리프 도구 + 사이트 청사진 생성 + 신뢰 증거 체계",
   "type": "module",
   "scripts": {
     "dev": "vite",

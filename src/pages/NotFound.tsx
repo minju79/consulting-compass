@@ -1,10 +1,7 @@
 import { Link } from "react-router-dom";
-import { ArrowLeft, Search } from "lucide-react";
-import { usePageMeta } from "@/hooks/usePageMeta";
+import { ArrowLeft, Search, ClipboardList, Layers } from "lucide-react";
 
 const NotFound = () => {
-  usePageMeta();
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-6">
       <div className="text-center max-w-md">
@@ -22,11 +19,15 @@ const NotFound = () => {
             <ArrowLeft className="h-4 w-4" /> 메인으로 돌아가기
           </Link>
           <Link
-            to="/checklist"
+            to="/client-brief"
             className="inline-flex items-center gap-2 rounded-lg border bg-card px-5 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-secondary"
           >
-            <Search className="h-4 w-4" /> 체크리스트 보기
+            <ClipboardList className="h-4 w-4" /> 브리프 시작하기
           </Link>
+        </div>
+        <div className="flex items-center justify-center gap-3 mt-3">
+          <Link to="/site-blueprint" className="text-xs text-accent hover:underline inline-flex items-center gap-1"><Layers className="h-3 w-3" /> 사이트 청사진</Link>
+          <Link to="/checklist" className="text-xs text-accent hover:underline inline-flex items-center gap-1"><Search className="h-3 w-3" /> 체크리스트</Link>
         </div>
       </div>
     </div>

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { getRouteMeta, getCanonicalUrl } from "@/data/routeMeta";
+import { getRouteMeta, getCanonicalUrl, getBreadcrumbs } from "@/data/routeMeta";
 import { industryConfig } from "@/data/industryConfig";
 
 export function usePageMeta() {
@@ -8,7 +8,6 @@ export function usePageMeta() {
 
   useEffect(() => {
     const meta = getRouteMeta(pathname);
-    if (!meta) return;
 
     // Title
     document.title = meta.title;
@@ -27,6 +26,9 @@ export function usePageMeta() {
     // Description
     setMeta("name", "description", meta.description);
 
+    // Robots
+    setMeta("name", "robots", meta.robots || "index, follow");
+
     // Canonical
     const canonical = getCanonicalUrl(pathname);
     let link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
@@ -43,13 +45,19 @@ export function usePageMeta() {
     setMeta("property", "og:type", meta.ogType);
     setMeta("property", "og:url", canonical);
     setMeta("property", "og:locale", industryConfig.locale);
+    if (meta.ogImage) {
+      setMeta("property", "og:image", `${industryConfig.siteUrl}${meta.ogImage}`);
+    }
 
     // Twitter
     setMeta("name", "twitter:card", "summary_large_image");
     setMeta("name", "twitter:title", meta.ogTitle);
     setMeta("name", "twitter:description", meta.ogDescription);
+    if (meta.ogImage) {
+      setMeta("name", "twitter:image", `${industryConfig.siteUrl}${meta.ogImage}`);
+    }
 
-    // JSON-LD — update per page
+    // JSON-LD
     let ldScript = document.getElementById("page-jsonld") as HTMLScriptElement | null;
     if (!ldScript) {
       ldScript = document.createElement("script");
@@ -75,5 +83,26 @@ export function usePageMeta() {
     }
 
     ldScript.textContent = JSON.stringify(ldData);
+
+    // BreadcrumbList JSON-LD
+    let bcScript = document.getElementById("breadcrumb-jsonld") as HTMLScriptElement | null;
+    if (!bcScript) {
+      bcScript = document.createElement("script");
+      bcScript.id = "breadcrumb-jsonld";
+      bcScript.type = "application/ld+json";
+      document.head.appendChild(bcScript);
+    }
+
+    const crumbs = getBreadcrumbs(pathname);
+    bcScript.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: crumbs.map((c, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        name: c.label,
+        item: `${industryConfig.siteUrl}${c.path === "/" ? "" : c.path}`,
+      })),
+    });
   }, [pathname]);
 }
