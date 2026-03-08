@@ -10,7 +10,7 @@ import {
   BriefData,
   emptyBrief,
   exampleBrief,
-  loadBrief,
+  loadBriefWithStatus,
   saveBrief,
   exportBriefJson,
   importBriefJson,
