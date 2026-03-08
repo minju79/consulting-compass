@@ -23,10 +23,17 @@ const quickNavItems = [
   { title: "디자인 가이드", description: "브랜드 톤, 컬러 시스템, 타이포그래피, 이미지 스타일을 정의합니다.", icon: <Palette className="h-5 w-5" />, href: "/design-guide" },
   { title: "UI 가이드", description: "헤더, 히어로, 카드, CTA 등 핵심 UI 컴포넌트의 사용 기준을 제시합니다.", icon: <Component className="h-5 w-5" />, href: "/ui-guide" },
   { title: "UX 가이드", description: "사용자 여정, CTA 배치, 신뢰 요소 위치, 폼 전략을 설계합니다.", icon: <Users className="h-5 w-5" />, href: "/ux-guide" },
-  { title: "페이지 템플릿", description: "실제 고객사 사이트에 바로 적용 가능한 페이지별 구조 템플릿입니다.", icon: <FileText className="h-5 w-5" />, href: "/page-templates" },
-  { title: "콘텐츠 가이드", description: "신뢰를 높이는 카피라이팅 원칙과 문장 템플릿을 제공합니다.", icon: <PenTool className="h-5 w-5" />, href: "/content-guide" },
-  { title: "SEO / GEO", description: "메타 태그, URL 구조, 구조화 데이터, AI 검색 최적화 전략을 다룹니다.", icon: <Search className="h-5 w-5" />, href: "/seo-geo" },
+  { title: "페이지 템플릿", description: "필수/선택/조건부 블록 시스템 기반의 페이지별 구조 템플릿입니다.", icon: <FileText className="h-5 w-5" />, href: "/page-templates" },
+  { title: "콘텐츠 가이드", description: "증거 기반 카피라이팅 원칙과 문장 템플릿을 제공합니다.", icon: <PenTool className="h-5 w-5" />, href: "/content-guide" },
+  { title: "SEO / GEO", description: "메타 태그, JSON-LD, URL 구조, AI 검색 최적화 전략을 다룹니다.", icon: <Search className="h-5 w-5" />, href: "/seo-geo" },
   { title: "실무 체크리스트", description: "디자인, UI, UX, SEO, 런칭 전 최종 점검까지 체크리스트를 제공합니다.", icon: <CheckSquare className="h-5 w-5" />, href: "/checklist" },
+];
+
+const toolNavItems = [
+  { title: "고객사 브리프", description: "고객사 정보를 체계적으로 수집·정리하여 사이트 제작 기초 데이터를 구성합니다.", icon: <Target className="h-5 w-5" />, href: "/client-brief", accent: true },
+  { title: "사이트 청사진", description: "브리프 기반으로 사이트 유형, 페이지 구조, 섹션, CTA를 도출합니다.", icon: <Layers className="h-5 w-5" />, href: "/site-blueprint", accent: true },
+  { title: "구현 규칙", description: "조건별 템플릿 선택, 자산 부족 시 대체 전략 등 실무 규칙 문서.", icon: <Shield className="h-5 w-5" />, href: "/implementation-rules", accent: true },
+  { title: "신뢰 증거 체계", description: "신뢰 요소 우선순위, 페이지별 배치 규칙, 부족 시 대체 전략.", icon: <Shield className="h-5 w-5" />, href: "/proof-system", accent: true },
 ];
 
 const principles = [
