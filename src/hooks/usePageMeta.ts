@@ -45,19 +45,16 @@ export function usePageMeta() {
     setMeta("property", "og:type", meta.ogType);
     setMeta("property", "og:url", canonical);
     setMeta("property", "og:locale", industryConfig.locale);
-    if (meta.ogImage) {
-      setMeta("property", "og:image", `${industryConfig.siteUrl}${meta.ogImage}`);
-    }
+    const ogImg = meta.ogImage || "/og-image.png";
+    setMeta("property", "og:image", `${industryConfig.siteUrl}${ogImg}`);
 
     // Twitter
     setMeta("name", "twitter:card", "summary_large_image");
     setMeta("name", "twitter:title", meta.ogTitle);
     setMeta("name", "twitter:description", meta.ogDescription);
-    if (meta.ogImage) {
-      setMeta("name", "twitter:image", `${industryConfig.siteUrl}${meta.ogImage}`);
-    }
+    setMeta("name", "twitter:image", `${industryConfig.siteUrl}${ogImg}`);
 
-    // JSON-LD
+    // ─── JSON-LD: Page-specific structured data ───
     let ldScript = document.getElementById("page-jsonld") as HTMLScriptElement | null;
     if (!ldScript) {
       ldScript = document.createElement("script");
@@ -66,15 +63,16 @@ export function usePageMeta() {
       document.head.appendChild(ldScript);
     }
 
+    const jsonLdType = meta.jsonLdType || "WebPage";
     const ldData: Record<string, unknown> = {
       "@context": "https://schema.org",
-      "@type": meta.jsonLdType || "WebPage",
+      "@type": jsonLdType,
       name: meta.ogTitle,
       description: meta.ogDescription,
       url: canonical,
     };
 
-    if (meta.jsonLdType === "WebSite") {
+    if (jsonLdType === "WebSite") {
       ldData.potentialAction = {
         "@type": "SearchAction",
         target: `${industryConfig.siteUrl}/search?q={search_term_string}`,
@@ -82,9 +80,15 @@ export function usePageMeta() {
       };
     }
 
+    if (jsonLdType === "FAQPage") {
+      // FAQ pages should include their own FAQ items via page-level injection
+      // This provides the wrapper
+      ldData.mainEntity = [];
+    }
+
     ldScript.textContent = JSON.stringify(ldData);
 
-    // BreadcrumbList JSON-LD
+    // ─── BreadcrumbList JSON-LD ───
     let bcScript = document.getElementById("breadcrumb-jsonld") as HTMLScriptElement | null;
     if (!bcScript) {
       bcScript = document.createElement("script");
@@ -104,5 +108,26 @@ export function usePageMeta() {
         item: `${industryConfig.siteUrl}${c.path === "/" ? "" : c.path}`,
       })),
     });
+
+    // ─── Organization JSON-LD (only on homepage) ───
+    let orgScript = document.getElementById("org-jsonld") as HTMLScriptElement | null;
+    if (pathname === "/") {
+      if (!orgScript) {
+        orgScript = document.createElement("script");
+        orgScript.id = "org-jsonld";
+        orgScript.type = "application/ld+json";
+        document.head.appendChild(orgScript);
+      }
+      orgScript.textContent = JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        name: industryConfig.tagline,
+        url: industryConfig.siteUrl,
+        logo: `${industryConfig.siteUrl}/og-image.png`,
+        description: industryConfig.description,
+      });
+    } else if (orgScript) {
+      orgScript.textContent = "";
+    }
   }, [pathname]);
 }

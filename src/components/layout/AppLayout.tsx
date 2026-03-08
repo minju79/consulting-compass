@@ -4,6 +4,7 @@ import { AppSidebar } from "./AppSidebar";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { PageNavigation } from "@/components/guide/PageNavigation";
 import { CommandSearch } from "@/components/CommandSearch";
+import { industryConfig } from "@/data/industryConfig";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -26,7 +27,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           <header role="banner" className="h-14 flex items-center border-b bg-card/80 backdrop-blur-sm sticky top-0 z-30 px-4">
             <SidebarTrigger className="mr-3" />
             <span className="text-sm font-medium text-muted-foreground flex-1">
-              컨설팅 업종 웹 제작 가이드
+              {industryConfig.tagline}
             </span>
             <CommandSearch />
           </header>
@@ -37,7 +38,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             </div>
           </main>
           <footer role="contentinfo" className="border-t py-4 px-6 text-center text-xs text-muted-foreground">
-            © {new Date().getFullYear()} 컨설팅 업종 웹 제작 가이드 · 내부 기준서
+            © {new Date().getFullYear()} {industryConfig.tagline} · 내부 기준서
           </footer>
         </div>
       </div>

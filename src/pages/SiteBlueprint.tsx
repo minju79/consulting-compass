@@ -5,7 +5,7 @@ import { BadgeLabel } from "@/components/guide/BadgeLabel";
 import { CopyBlock } from "@/components/guide/CopyBlock";
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { AlertTriangle, ArrowRight, Sparkles } from "lucide-react";
+import { AlertTriangle, ArrowRight, Sparkles, Copy } from "lucide-react";
 import {
   BriefData,
   exampleBrief,
@@ -29,9 +29,16 @@ const statusLabels: Record<string, string> = {
 };
 
 function PageBlueprintCard({ bp }: { bp: PageBlueprint }) {
+  const blocksByStatus = {
+    required: bp.blocks.filter((b) => b.status === "required"),
+    optional: bp.blocks.filter((b) => b.status === "optional"),
+    conditional: bp.blocks.filter((b) => b.status === "conditional"),
+    prohibited: bp.blocks.filter((b) => b.status === "prohibited"),
+  };
+
   return (
     <div className="rounded-lg border bg-card p-5">
-      <div className="flex items-center gap-2 mb-3 flex-wrap">
+      <div className="flex items-center gap-2 mb-4 flex-wrap">
         <h4 className="font-semibold text-sm text-foreground">{bp.name}</h4>
         <BadgeLabel type={bp.status === "필수" ? "required" : bp.status === "권장" ? "recommended" : bp.status === "조건부" ? "conditional" : "optional"}>
           {bp.status}
@@ -39,28 +46,51 @@ function PageBlueprintCard({ bp }: { bp: PageBlueprint }) {
         {bp.condition && <span className="text-[10px] text-muted-foreground">({bp.condition})</span>}
       </div>
 
-      {/* Blocks */}
-      <div className="space-y-1.5 mb-3">
-        {bp.blocks.map((b) => (
-          <div key={b.name} className="flex items-center gap-2 text-xs">
-            <span className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[9px] font-semibold ${statusColors[b.status]}`}>
-              {statusLabels[b.status]}
-            </span>
-            <span className="text-foreground">{b.name}</span>
-            {b.note && <span className="text-muted-foreground">— {b.note}</span>}
-          </div>
-        ))}
+      {/* Blocks by status */}
+      <div className="space-y-3 mb-4">
+        {(["required", "optional", "conditional", "prohibited"] as const).map((status) => {
+          const blocks = blocksByStatus[status];
+          if (blocks.length === 0) return null;
+          return (
+            <div key={status}>
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1 block">
+                {statusLabels[status]} 블록
+              </span>
+              <div className="space-y-1">
+                {blocks.map((b) => (
+                  <div key={b.name} className="flex items-start gap-2 text-xs">
+                    <span className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[9px] font-semibold shrink-0 mt-0.5 ${statusColors[b.status]}`}>
+                      {statusLabels[b.status]}
+                    </span>
+                    <span className="text-foreground">{b.name}</span>
+                    {b.note && <span className="text-muted-foreground">— {b.note}</span>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
       </div>
 
-      {/* Meta */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] mt-3 pt-3 border-t">
-        <div><span className="text-muted-foreground font-semibold">핵심 CTA:</span> <span className="text-accent font-medium">{bp.cta}</span></div>
+      {/* Meta grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] pt-3 border-t">
+        <div><span className="text-muted-foreground font-semibold">핵심 CTA:</span> <span className="text-accent font-medium">"{bp.cta}"</span></div>
+        {bp.secondaryCta && <div><span className="text-muted-foreground font-semibold">보조 CTA:</span> <span className="text-foreground">"{bp.secondaryCta}"</span></div>}
         <div><span className="text-muted-foreground font-semibold">모바일:</span> <span className="text-foreground">{bp.mobileRule}</span></div>
         {bp.proofElements.length > 0 && (
           <div className="col-span-2"><span className="text-muted-foreground font-semibold">증거 요소:</span> <span className="text-foreground">{bp.proofElements.join(", ")}</span></div>
         )}
         {bp.seoPoints.length > 0 && (
           <div className="col-span-2"><span className="text-muted-foreground font-semibold">SEO:</span> <span className="text-foreground">{bp.seoPoints.join(", ")}</span></div>
+        )}
+        {bp.assetFallbacks && bp.assetFallbacks.length > 0 && (
+          <div className="col-span-2"><span className="text-destructive font-semibold">자산 부족 대체:</span> <span className="text-muted-foreground">{bp.assetFallbacks.join("; ")}</span></div>
+        )}
+        {bp.subtypeNotes && (
+          <div className="col-span-2"><span className="text-muted-foreground font-semibold">유형 참고:</span> <span className="text-foreground">{bp.subtypeNotes}</span></div>
+        )}
+        {bp.reviewClaims && bp.reviewClaims.length > 0 && (
+          <div className="col-span-2"><span className="text-yellow-600 font-semibold">검토 필요:</span> <span className="text-muted-foreground">{bp.reviewClaims.join("; ")}</span></div>
         )}
       </div>
     </div>
@@ -100,12 +130,27 @@ const SiteBlueprint = () => {
     );
   }
 
+  const requiredPages = blueprints.filter((bp) => bp.status === "필수");
+  const recommendedPages = blueprints.filter((bp) => bp.status === "권장");
+  const conditionalPages = blueprints.filter((bp) => bp.status === "조건부" || bp.status === "제거 가능");
+
   return (
     <AppLayout>
       <PageHeader badge="Site Blueprint" title="사이트 청사진" description={`${brief.companyName || "고객사"} 브리프 기반으로 생성된 공개용 컨설팅 사이트 구조입니다.`} />
 
+      {/* Quick summary */}
+      <div className="rounded-lg border bg-accent/5 border-accent/20 p-4 mb-6">
+        <p className="text-sm text-foreground font-medium mb-1">📋 빠른 적용 포인트</p>
+        <ul className="text-xs text-muted-foreground space-y-0.5">
+          <li>• 사이트 유형: <strong className="text-accent">{analysis.siteType}</strong> — {analysis.siteTypeReason}</li>
+          <li>• 추천 규모: <strong className="text-foreground">{analysis.scaleRecommendation}</strong> · 총 {blueprints.length}개 페이지 · 증거 자산 {analysis.proofScore}/8</li>
+          <li>• 핵심 CTA: <strong className="text-foreground">"{analysis.recommendedCta}"</strong></li>
+          <li>• 유형: {analysis.isBoutique ? "부티크 컨설팅" : "종합 컨설팅"} · 산업 특화: {analysis.hasIndustryFocus ? `${analysis.industryCount}개 산업` : "일반"}</li>
+        </ul>
+      </div>
+
       {/* Summary Dashboard */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <div className="rounded-lg border bg-accent/5 border-accent/20 p-4">
           <span className="text-[10px] text-muted-foreground">추천 사이트 유형</span>
           <p className="text-sm font-bold text-accent">{analysis.siteType}</p>
@@ -128,16 +173,48 @@ const SiteBlueprint = () => {
       <SectionBlock id="site-type" title="추천 사이트 유형 판별 근거">
         <div className="rounded-lg border bg-card p-5">
           <p className="text-sm text-foreground mb-2"><strong>{analysis.siteType}</strong></p>
-          <p className="text-xs text-muted-foreground">{analysis.siteTypeReason}</p>
+          <p className="text-xs text-muted-foreground mb-3">{analysis.siteTypeReason}</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+            <div className="rounded-md border bg-surface px-3 py-2">
+              <span className="text-muted-foreground">유형:</span>
+              <span className="text-foreground ml-1">{analysis.isBoutique ? "부티크" : "종합"}</span>
+            </div>
+            <div className="rounded-md border bg-surface px-3 py-2">
+              <span className="text-muted-foreground">산업:</span>
+              <span className="text-foreground ml-1">{analysis.hasIndustryFocus ? `${analysis.industryCount}개 특화` : "일반"}</span>
+            </div>
+            <div className="rounded-md border bg-surface px-3 py-2">
+              <span className="text-muted-foreground">규모:</span>
+              <span className="text-foreground ml-1">{brief.projectScale || "미지정"}</span>
+            </div>
+          </div>
         </div>
       </SectionBlock>
 
-      {/* Page Blueprints */}
-      <SectionBlock id="pages" title={`추천 페이지 구조 (${blueprints.length}개)`}>
+      {/* Required Pages */}
+      <SectionBlock id="required-pages" title={`필수 페이지 (${requiredPages.length}개)`}>
         <div className="space-y-4">
-          {blueprints.map((bp) => <PageBlueprintCard key={bp.name} bp={bp} />)}
+          {requiredPages.map((bp) => <PageBlueprintCard key={bp.name} bp={bp} />)}
         </div>
       </SectionBlock>
+
+      {/* Recommended Pages */}
+      {recommendedPages.length > 0 && (
+        <SectionBlock id="recommended-pages" title={`권장 페이지 (${recommendedPages.length}개)`}>
+          <div className="space-y-4">
+            {recommendedPages.map((bp) => <PageBlueprintCard key={bp.name} bp={bp} />)}
+          </div>
+        </SectionBlock>
+      )}
+
+      {/* Conditional Pages */}
+      {conditionalPages.length > 0 && (
+        <SectionBlock id="conditional-pages" title={`조건부 페이지 (${conditionalPages.length}개)`}>
+          <div className="space-y-4">
+            {conditionalPages.map((bp) => <PageBlueprintCard key={bp.name} bp={bp} />)}
+          </div>
+        </SectionBlock>
+      )}
 
       {/* Hero & Meta Recommendations */}
       <SectionBlock id="hero-meta" title="추천 히어로 & 메타 구조">
@@ -154,6 +231,7 @@ const SiteBlueprint = () => {
             <p className="text-xs font-mono text-muted-foreground">홈: {brief.companyName} — {brief.coreServices?.split(",")[0]?.trim()} 전문 컨설팅</p>
             <p className="text-xs font-mono text-muted-foreground mt-1">서비스: [서비스명] | {brief.companyName}</p>
             <p className="text-xs font-mono text-muted-foreground mt-1">사례: [산업] 프로젝트 사례 | {brief.companyName}</p>
+            <p className="text-xs font-mono text-muted-foreground mt-1">팀: 전문가 소개 | {brief.companyName}</p>
           </div>
         </div>
       </SectionBlock>
@@ -167,6 +245,10 @@ const SiteBlueprint = () => {
               <p className="text-xs font-semibold mt-0.5">{p.status}</p>
             </div>
           ))}
+        </div>
+        <div className="mt-3 flex gap-3 text-xs">
+          <Link to="/proof-system" className="text-accent hover:underline">증거 체계 상세 →</Link>
+          <Link to="/implementation-rules" className="text-accent hover:underline">구현 규칙 →</Link>
         </div>
       </SectionBlock>
 
@@ -182,6 +264,9 @@ const SiteBlueprint = () => {
         </Link>
         <Link to="/proof-system" className="inline-flex items-center gap-2 rounded-lg border bg-card px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary transition-colors">
           신뢰 증거 체계 보기
+        </Link>
+        <Link to="/client-brief" className="inline-flex items-center gap-2 rounded-lg border bg-card px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary transition-colors">
+          브리프 수정하기
         </Link>
       </div>
     </AppLayout>

@@ -1,14 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  CommandDialog,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
+  CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
 } from "@/components/ui/command";
-import { getSortedRoutes } from "@/data/routeMeta";
+import { getRoutesByGroup } from "@/data/routeMeta";
 import { Search } from "lucide-react";
 
 const iconMap: Record<string, string> = {
@@ -17,10 +12,13 @@ const iconMap: Record<string, string> = {
   CheckSquare: "✅", ClipboardList: "📋", Map: "🗺️", Settings: "⚙️", ShieldCheck: "🛡️",
 };
 
+const groupLabels = { guide: "가이드", tool: "제작 도구" };
+
 export function CommandSearch() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
-  const routes = getSortedRoutes();
+  const guideRoutes = getRoutesByGroup("guide");
+  const toolRoutes = getRoutesByGroup("tool");
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -32,6 +30,25 @@ export function CommandSearch() {
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
   }, []);
+
+  const renderGroup = (routes: typeof guideRoutes, label: string) => (
+    <CommandGroup heading={label}>
+      {routes.map((r) => (
+        <CommandItem
+          key={r.path}
+          value={`${r.navTitle} ${r.breadcrumbLabel} ${r.description} ${r.searchIntent || ""}`}
+          onSelect={() => { navigate(r.path); setOpen(false); }}
+        >
+          <span className="mr-2">{iconMap[r.icon] || "📄"}</span>
+          <div className="flex-1 min-w-0">
+            <span className="font-medium">{r.navTitle}</span>
+            <span className="ml-2 text-xs text-muted-foreground truncate">{r.breadcrumbLabel}</span>
+          </div>
+          <span className="ml-auto text-[10px] text-muted-foreground shrink-0">{r.path}</span>
+        </CommandItem>
+      ))}
+    </CommandGroup>
+  );
 
   return (
     <>
@@ -47,25 +64,16 @@ export function CommandSearch() {
         </kbd>
       </button>
       <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput placeholder="페이지 검색..." />
+        <CommandInput placeholder="페이지 검색... (이름, 설명, 키워드)" />
         <CommandList>
-          <CommandEmpty>검색 결과가 없습니다.</CommandEmpty>
-          <CommandGroup heading="페이지">
-            {routes.map((r) => (
-              <CommandItem
-                key={r.path}
-                value={`${r.navTitle} ${r.title}`}
-                onSelect={() => {
-                  navigate(r.path);
-                  setOpen(false);
-                }}
-              >
-                <span className="mr-2">{iconMap[r.icon] || "📄"}</span>
-                <span>{r.navTitle}</span>
-                <span className="ml-auto text-xs text-muted-foreground">{r.path}</span>
-              </CommandItem>
-            ))}
-          </CommandGroup>
+          <CommandEmpty>
+            <div className="py-6 text-center">
+              <p className="text-sm text-muted-foreground">검색 결과가 없습니다.</p>
+              <p className="text-xs text-muted-foreground mt-1">다른 키워드로 시도해 보세요.</p>
+            </div>
+          </CommandEmpty>
+          {renderGroup(guideRoutes, groupLabels.guide)}
+          {renderGroup(toolRoutes, groupLabels.tool)}
         </CommandList>
       </CommandDialog>
     </>

@@ -109,12 +109,17 @@ const ClientBrief = () => {
     const reader = new FileReader();
     reader.onload = () => {
       const result = importBriefJson(reader.result as string);
-      if (result) {
-        setFormData(result);
-        saveBrief(result);
+      if (result.success && result.data) {
+        setFormData(result.data);
+        saveBrief(result.data);
         toast.success("브리프를 불러왔습니다");
       } else {
-        toast.error("유효하지 않은 JSON 파일입니다");
+        const msgs: Record<string, string> = {
+          invalid_json: "유효하지 않은 JSON 형식입니다",
+          invalid_shape: "브리프 데이터 형식이 올바르지 않습니다",
+          invalid_version: "지원하지 않는 스키마 버전입니다",
+        };
+        toast.error(msgs[result.error || ""] || "불러오기에 실패했습니다");
       }
     };
     reader.readAsText(file);
