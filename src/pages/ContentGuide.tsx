@@ -32,15 +32,25 @@ const ContentGuide = () => {
         description="컨설팅 업종에서 신뢰를 높이는 증거 기반 카피라이팅 원칙, 문장 공식, 템플릿, CTA 라이브러리를 정리합니다."
       />
 
-      {/* 빠른 적용 포인트 */}
-      <div className="rounded-lg border bg-accent/5 border-accent/20 p-4 mb-8">
-        <p className="text-sm text-foreground font-medium mb-1">📋 빠른 적용 포인트</p>
-        <ul className="text-xs text-muted-foreground space-y-1">
-          <li>• 모든 주장에는 반드시 근거(수치, 사례, 프로세스)를 연결하세요.</li>
-          <li>• 예시 데이터는 반드시 <BadgeLabel type="proof">예시 데이터</BadgeLabel> 표기를 하세요.</li>
-          <li>• 금지 표현 목록을 확인하고, 검증 불가한 표현은 사용하지 마세요.</li>
-        </ul>
-      </div>
+      <QuickSummary points={[
+        "모든 주장에는 반드시 근거(수치, 사례, 프로세스)를 연결하세요.",
+        "예시 데이터는 반드시 '(예시 데이터)' 표기를 하세요.",
+        "금지 표현 목록을 확인하고, 검증 불가한 표현은 사용하지 마세요.",
+      ]} />
+
+      <InPageToc items={[
+        { id: "tone", label: "문장 톤" },
+        { id: "abstraction-rule", label: "추상→구체 규칙" },
+        { id: "claim-evidence", label: "주장+근거 공식" },
+        { id: "psr-structure", label: "PSR 구조" },
+        { id: "hero-formula", label: "히어로 카피" },
+        { id: "service-template", label: "서비스 소개" },
+        { id: "case-template", label: "케이스 스터디" },
+        { id: "expert-template", label: "전문가 소개" },
+        { id: "cta-library", label: "CTA 라이브러리" },
+        { id: "prohibited", label: "금지 표현" },
+        { id: "fabrication", label: "허위 데이터 금지" },
+      ]} />
 
       {/* 톤 */}
       <SectionBlock id="tone" title="컨설팅 업종의 문장 톤">

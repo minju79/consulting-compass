@@ -27,14 +27,25 @@ const SeoGeo = () => {
         description="검색 엔진 최적화와 AI 검색 최적화를 위한 실행형 가이드입니다. 메타 태그, JSON-LD, URL 구조, 콘텐츠 전략까지 실제 코드 예시를 제공합니다."
       />
 
-      <div className="rounded-lg border bg-accent/5 border-accent/20 p-4 mb-8">
-        <p className="text-sm text-foreground font-medium mb-1">📋 빠른 적용 포인트</p>
-        <ul className="text-xs text-muted-foreground space-y-1">
-          <li>• 모든 페이지에 고유한 title(60자), description(160자), canonical을 설정하세요.</li>
-          <li>• JSON-LD는 Organization(전체), FAQPage(FAQ 있는 페이지), Article(인사이트)을 우선 적용하세요.</li>
-          <li>• 이 가이드의 코드 블록은 복사·수정하여 바로 사용할 수 있습니다.</li>
-        </ul>
-      </div>
+      <QuickSummary points={[
+        "모든 페이지에 고유한 title(60자), description(160자), canonical을 설정하세요.",
+        "JSON-LD는 Organization(전체), FAQPage(FAQ 있는 페이지), Article(인사이트)을 우선 적용하세요.",
+        "이 가이드의 코드 블록은 복사·수정하여 바로 사용할 수 있습니다.",
+      ]} />
+
+      <InPageToc items={[
+        { id: "meta-templates", label: "메타 템플릿" },
+        { id: "canonical", label: "Canonical URL 전략" },
+        { id: "heading-structure", label: "헤딩 구조" },
+        { id: "url-structure", label: "URL 구조" },
+        { id: "internal-links", label: "내부 링크 맵" },
+        { id: "json-ld", label: "JSON-LD" },
+        { id: "og-twitter", label: "OG / Twitter" },
+        { id: "sitemap", label: "sitemap.xml" },
+        { id: "robots", label: "robots.txt" },
+        { id: "landing-pages", label: "랜딩 페이지" },
+        { id: "ai-search", label: "AI 검색 최적화" },
+      ]} />
 
       {/* 메타 템플릿 */}
       <SectionBlock id="meta-templates" title="페이지별 메타 타이틀 / 디스크립션 템플릿">
