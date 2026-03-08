@@ -3,6 +3,8 @@ import { PageHeader } from "@/components/guide/PageHeader";
 import { SectionBlock } from "@/components/guide/SectionBlock";
 import { BadgeLabel } from "@/components/guide/BadgeLabel";
 import { CopyBlock } from "@/components/guide/CopyBlock";
+import { QuickSummary } from "@/components/guide/QuickSummary";
+import { InPageToc } from "@/components/guide/InPageToc";
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { AlertTriangle, ArrowRight, Sparkles } from "lucide-react";
@@ -169,19 +171,23 @@ const SiteBlueprint = () => {
     <AppLayout>
       <PageHeader badge="Site Blueprint" title="사이트 청사진" description={`${brief.companyName || "고객사"} 브리프 기반으로 생성된 공개용 컨설팅 사이트 구조입니다.`} />
 
-      {/* Quick summary */}
-      <div className="rounded-lg border bg-accent/5 border-accent/20 p-4 mb-6">
-        <p className="text-sm text-foreground font-medium mb-1">📋 빠른 적용 포인트</p>
-        <ul className="text-xs text-muted-foreground space-y-0.5">
-          <li>• 사이트 유형: <strong className="text-accent">{analysis.siteType}</strong> — {analysis.siteTypeReason}</li>
-          <li>• 추천 규모: <strong className="text-foreground">{analysis.scaleRecommendation}</strong> · 총 {blueprints.length}개 페이지 · 증거 자산 {analysis.proofScore}/8</li>
-          <li>• 핵심 CTA: <strong className="text-foreground">"{analysis.recommendedCta}"</strong> · 보조: "{analysis.recommendedSecondaryCta}"</li>
-          <li>• 유형: {analysis.isBoutique ? "부티크 컨설팅" : "종합 컨설팅"} · 산업 특화: {analysis.hasIndustryFocus ? `${analysis.industryCount}개 산업` : "일반"}</li>
-          {proofFallbacks.filter((f) => f.active).length > 0 && (
-            <li>• <span className="text-destructive">자산 대체 필요:</span> {proofFallbacks.filter((f) => f.active).map((f) => f.asset).join(", ")}</li>
-          )}
-        </ul>
-      </div>
+      <QuickSummary points={[
+        `사이트 유형: ${analysis.siteType} — ${analysis.siteTypeReason}`,
+        `추천 규모: ${analysis.scaleRecommendation} · 총 ${blueprints.length}개 페이지 · 증거 자산 ${analysis.proofScore}/8`,
+        `핵심 CTA: "${analysis.recommendedCta}" · 보조: "${analysis.recommendedSecondaryCta}"`,
+        `유형: ${analysis.isBoutique ? "부티크 컨설팅" : "종합 컨설팅"} · 산업 특화: ${analysis.hasIndustryFocus ? `${analysis.industryCount}개 산업` : "일반"}`,
+        ...(proofFallbacks.filter((f) => f.active).length > 0 ? [`자산 대체 필요: ${proofFallbacks.filter((f) => f.active).map((f) => f.asset).join(", ")}`] : []),
+      ]} />
+
+      <InPageToc items={[
+        { id: "site-type", label: "추천 사이트 유형" },
+        ...(requiredPages.length > 0 ? [{ id: "required-pages", label: `필수 페이지 (${requiredPages.length})` }] : []),
+        ...(recommendedPages.length > 0 ? [{ id: "recommended-pages", label: `권장 페이지 (${recommendedPages.length})` }] : []),
+        ...(conditionalPages.length > 0 ? [{ id: "conditional-pages", label: `조건부 페이지 (${conditionalPages.length})` }] : []),
+        { id: "hero-meta", label: "히어로 & 메타 구조" },
+        { id: "proof", label: "증거 자산 추천" },
+        { id: "prompt", label: "생성 프롬프트" },
+      ]} />
 
       {/* Summary Dashboard */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">

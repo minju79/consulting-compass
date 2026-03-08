@@ -2,6 +2,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/guide/PageHeader";
 import { SectionBlock } from "@/components/guide/SectionBlock";
 import { BadgeLabel } from "@/components/guide/BadgeLabel";
+import { InPageToc } from "@/components/guide/InPageToc";
 import { CopyBlock } from "@/components/guide/CopyBlock";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -255,6 +256,11 @@ const ClientBrief = () => {
           </div>
         </div>
       )}
+
+      <InPageToc items={[
+        ...categories.map((cat) => ({ id: cat.replace(/\s/g, "-"), label: cat })),
+        { id: "completion", label: "카테고리별 입력 현황" },
+      ]} />
 
       {/* Summary Dashboard */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">

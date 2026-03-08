@@ -4,6 +4,8 @@ import { SectionBlock } from "@/components/guide/SectionBlock";
 import { BadgeLabel } from "@/components/guide/BadgeLabel";
 import { CopyBlock } from "@/components/guide/CopyBlock";
 import { InfoList } from "@/components/guide/InfoList";
+import { QuickSummary } from "@/components/guide/QuickSummary";
+import { InPageToc } from "@/components/guide/InPageToc";
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { AlertTriangle, ArrowRight, Sparkles } from "lucide-react";
@@ -117,15 +119,29 @@ ${brief.hasCases ? "- 케이스 스터디 하이라이트" : ""}
 
       {/* Quick summary */}
       {!isEmpty && (
-        <div className="rounded-lg border bg-accent/5 border-accent/20 p-4 mb-6">
-          <p className="text-sm text-foreground font-medium mb-1">📋 빠른 적용 포인트</p>
-          <ul className="text-xs text-muted-foreground space-y-0.5">
-            <li>• 사이트 유형: <strong className="text-accent">{analysis.siteType}</strong> · {analysis.isBoutique ? "부티크" : "종합"} · {analysis.hasIndustryFocus ? `${analysis.industryCount}개 산업 특화` : "일반"}</li>
-            <li>• 필수 블록 {uniqueRequired.length}개 · 조건부 {uniqueConditional.length}개 · 금지 {uniqueProhibited.length}개 · 자산 대체 필요 {activeProofFallbacks.length}개</li>
-            <li>• 추천 규모: <strong className="text-foreground">{analysis.scaleRecommendation}</strong> · 총 {blueprints.length}개 페이지</li>
-            <li>• 콘텐츠: {analysis.hasContentStrategy ? "인사이트 운영" : "미운영"} · 다운로드: {analysis.hasDownloadStrategy ? "운영" : "미운영"}</li>
-          </ul>
-        </div>
+        <>
+          <QuickSummary points={[
+            `사이트 유형: ${analysis.siteType} · ${analysis.isBoutique ? "부티크" : "종합"} · ${analysis.hasIndustryFocus ? `${analysis.industryCount}개 산업 특화` : "일반"}`,
+            `필수 블록 ${uniqueRequired.length}개 · 조건부 ${uniqueConditional.length}개 · 금지 ${uniqueProhibited.length}개 · 자산 대체 필요 ${activeProofFallbacks.length}개`,
+            `추천 규모: ${analysis.scaleRecommendation} · 총 ${blueprints.length}개 페이지`,
+            `콘텐츠: ${analysis.hasContentStrategy ? "인사이트 운영" : "미운영"} · 다운로드: ${analysis.hasDownloadStrategy ? "운영" : "미운영"}`,
+          ]} />
+          <InPageToc items={[
+            { id: "template-selection", label: "템플릿 선택 규칙" },
+            { id: "cta-selection", label: "CTA 선택 규칙" },
+            { id: "layout-rules", label: "레이아웃 분기 규칙" },
+            { id: "required-blocks", label: "필수 블록 결과" },
+            ...(uniqueConditional.length > 0 ? [{ id: "conditional-blocks", label: "조건부 블록" }] : []),
+            ...(uniqueOptional.length > 0 ? [{ id: "optional-blocks", label: "선택 블록" }] : []),
+            ...(uniqueProhibited.length > 0 ? [{ id: "prohibited-blocks", label: "금지 블록" }] : []),
+            { id: "proof-fallbacks", label: "증거 대체 전략" },
+            { id: "budget-scaling", label: "예산별 구조 축소" },
+            { id: "core-trust", label: "핵심 신뢰 블록" },
+            { id: "subtype-rules", label: "분야별 추가 규칙" },
+            { id: "verification", label: "콘텐츠 검증" },
+            ...(isEmpty ? [] : [{ id: "copy-guide", label: "즉시 제작 지침" }]),
+          ]} />
+        </>
       )}
 
       {isEmpty && (

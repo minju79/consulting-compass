@@ -4,6 +4,8 @@ import { SectionBlock } from "@/components/guide/SectionBlock";
 import { BadgeLabel } from "@/components/guide/BadgeLabel";
 import { CopyBlock } from "@/components/guide/CopyBlock";
 import { InfoList } from "@/components/guide/InfoList";
+import { QuickSummary } from "@/components/guide/QuickSummary";
+import { InPageToc } from "@/components/guide/InPageToc";
 import { proofAssets, pageProofRules } from "@/data/proofSystemRules";
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
@@ -33,16 +35,22 @@ const ProofSystem = () => {
         description="컨설팅 업종 특유의 신뢰 증거 우선순위, 페이지별 배치 규칙, 자산 부족 시 대체 전략을 구조화합니다."
       />
 
-      {/* Quick summary */}
-      <div className="rounded-lg border bg-accent/5 border-accent/20 p-4 mb-6">
-        <p className="text-sm text-foreground font-medium mb-1">📋 빠른 적용 포인트</p>
-        <ul className="text-xs text-muted-foreground space-y-0.5">
-          <li>• 증거 자산은 <strong className="text-foreground">우선순위와 강도가 있으며</strong>, 모든 것을 다 보여줄 필요는 없습니다.</li>
-          <li>• 보유하지 않은 자산에 대해서는 <strong className="text-foreground">반드시 대체 전략을 적용</strong>하세요.</li>
-          <li>• 허위 자산 (고객사, 수치, 추천사, 수상 등)은 <strong className="text-destructive">절대 생성 금지</strong>입니다.</li>
-          {hasBrief && <li>• 현재 브리프 기반 증거 점수: <strong className="text-accent">{analysis.proofScore}/8</strong> · 대체 필요: {activeFallbacks.length}개</li>}
-        </ul>
-      </div>
+      <QuickSummary points={[
+        "증거 자산은 우선순위와 강도가 있으며, 모든 것을 다 보여줄 필요는 없습니다.",
+        "보유하지 않은 자산에 대해서는 반드시 대체 전략을 적용하세요.",
+        "허위 자산 (고객사, 수치, 추천사, 수상 등)은 절대 생성 금지입니다.",
+        ...(hasBrief ? [`현재 브리프 기반 증거 점수: ${analysis.proofScore}/8 · 대체 필요: ${activeFallbacks.length}개`] : []),
+      ]} />
+
+      <InPageToc items={[
+        { id: "priority", label: "신뢰 요소 우선순위" },
+        { id: "page-rules", label: "페이지별 배치 규칙" },
+        ...(hasBrief && blueprints.length > 0 ? [{ id: "blueprint-proof", label: "청사진 연동" }] : []),
+        { id: "asset-classification", label: "자산 분류 체계" },
+        { id: "combination-fallbacks", label: "대체 조합" },
+        { id: "prohibited-claims", label: "금지된 주장" },
+        ...(hasBrief ? [{ id: "proof-copy", label: "복사용 현황" }] : []),
+      ]} />
 
       {/* Brief-linked summary board */}
       {hasBrief && (
