@@ -17,10 +17,12 @@
 Client Brief (입력) → analyzeBrief() → BriefAnalysis
                      → generateBlueprints() → PageBlueprint[]
                      → generateLovablePrompt() → 복사용 프롬프트
+                     → getProofFallbacks() → 대체 전략 목록
 ```
 
 - Brief는 `localStorage`에 자동 저장 (schema version 관리)
 - Site Blueprint, Implementation Rules, Proof System이 brief 데이터를 읽어 동적 결과 표시
+- Proof 부족 시 대체 전략이 청사진과 구현 규칙 양쪽에 반영
 
 ## 기술 스택
 
@@ -50,10 +52,10 @@ npm run lint       # 린트 검사
 ```
 src/
   lib/
-    brief.ts         # Brief 스키마, 저장, 분석, 청사진 생성 엔진
+    brief.ts         # Brief 스키마, 저장, 분석, 청사진 생성, proof 대체 전략
   data/
     industryConfig.ts  # 업종 설정 (교체 시 다른 업종 적용)
-    routeMeta.ts       # 라우트별 SEO 메타 + 네비게이션 데이터
+    routeMeta.ts       # 라우트별 SEO 메타 + 네비게이션 + schemaType
     proofSystemRules.ts # 신뢰 증거 우선순위·배치 규칙
     templateBlueprints.ts # 페이지 블록 시스템 정의
     contentRules.ts    # 카피라이팅 공식, CTA, 금지 표현
@@ -68,27 +70,26 @@ src/
     ui/              # shadcn/ui
   pages/             # 13개 라우트 페이지 + NotFound
   hooks/
-    usePageMeta.ts   # 라우트별 SEO 메타 자동 관리
+    usePageMeta.ts   # 라우트별 SEO 메타 자동 관리 + applyPageMeta 공유 유틸
 ```
 
-## 라우트
+## 제작 워크플로우
 
-| 경로 | 그룹 | 설명 |
-|------|------|------|
-| `/` | 가이드 | 메인 대시보드 |
-| `/industry-overview` | 가이드 | 업종 특성 분석 |
-| `/design-guide` | 가이드 | 디자인 가이드 |
-| `/ui-guide` | 가이드 | UI 컴포넌트 가이드 |
-| `/ux-guide` | 가이드 | UX 전략 가이드 |
-| `/page-templates` | 가이드 | 페이지 블록 시스템 |
-| `/content-guide` | 가이드 | 콘텐츠/카피 가이드 |
-| `/seo-geo` | 가이드 | SEO/GEO 가이드 |
-| `/checklist` | 가이드 | 실무 체크리스트 |
-| `/client-brief` | 도구 | 고객사 브리프 입력 도구 |
-| `/site-blueprint` | 도구 | 사이트 청사진 생성기 |
-| `/implementation-rules` | 도구 | 조건부 구현 규칙 엔진 |
-| `/proof-system` | 도구 | 신뢰 증거 체계 |
+1. **업종 분석** `/industry-overview` — 방문자 심리, 신뢰 구조 이해
+2. **브리프 작성** `/client-brief` — 고객사 정보 입력, 자동 저장, JSON 내보내기
+3. **청사진 생성** `/site-blueprint` — 사이트 유형 판별, 페이지/블록 구조 출력
+4. **구현 규칙 확인** `/implementation-rules` — 조건부 블록, CTA, 레이아웃 분기
+5. **증거 체계 검토** `/proof-system` — 자산 현황, 대체 전략, 배치 규칙
+6. **프롬프트 복사** — Lovable용 공개 사이트 생성 프롬프트 출력
 
-## 확장
+## 업종 교체
 
-`src/data/industryConfig.ts`를 교체하면 다른 컨설팅 세부 분야(IT/DX, HR, 마케팅, 재무, ESG 등)에 적용 가능합니다. 페이지 구조와 UI는 데이터 기반으로 자동 반영됩니다.
+`src/data/industryConfig.ts`를 교체하면 다른 컨설팅 세부 분야(IT/DX, HR, 마케팅, 재무, ESG 등)에 적용 가능합니다. 사이드바, 헤더, 푸터 문구가 데이터 기반으로 자동 반영됩니다.
+
+## SEO 구조
+
+- 각 route에 `schemaType` (WebSite, Article, CollectionPage 등) 지정
+- guide 페이지는 `index, follow` / tool 페이지는 `noindex, follow`
+- 404는 `noindex, nofollow` + canonical 제거
+- JSON-LD: Organization (홈), BreadcrumbList (전체), Article (가이드)
+- `applyPageMeta()` 공유 유틸로 NotFound 포함 전체 메타 일원화
