@@ -15,7 +15,9 @@ describe("routeMeta", () => {
   });
 
   it("generates canonical URLs", () => {
-    expect(getCanonicalUrl("/")).not.toContain("//");
+    const home = getCanonicalUrl("/");
+    expect(home).toMatch(/^https:\/\/.+/);
+    expect(home.endsWith("//")).toBe(false);
     expect(getCanonicalUrl("/design-guide")).toContain("/design-guide");
   });
 
