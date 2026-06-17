@@ -2,6 +2,20 @@
 
 컨설팅 업종 홈페이지를 빠르게 제작하기 위한 **내부용 가이드 + 실전 제작 시스템**입니다.
 
+<!-- SOURCE_DERIVED_DESIGN_CONTRACT_START -->
+
+## Source-derived design contract
+
+This repository includes a source-derived [DESIGN.md](./DESIGN.md) for recreating the same homepage style, color system, component rhythm, and industry-specific UI rules from implementation evidence.
+
+- Public reference repo: https://github.com/Veritas-7/consulting-compass
+- Industry: 컨설팅
+- Source evidence: `src/index.css`, `tailwind.config.ts`, route/navigation data, guide components, and industry configuration
+- Verification gates: `design-md-lint DESIGN.md`, `npm run build`, `npm test`, `npm run lint`
+
+<!-- SOURCE_DERIVED_DESIGN_CONTRACT_END -->
+
+
 ## 시스템 구성
 
 1. **가이드 문서** — 업종 특성, 디자인, UI, UX, 콘텐츠, SEO/GEO, 페이지 템플릿, 체크리스트
