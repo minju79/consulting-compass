@@ -7,27 +7,27 @@ export const brandToneKeywords = [
 export const brandToneDescription = "\"대기업 컨설팅 + 부티크 전략 컨설팅\" 사이의 균형감을 목표로 합니다. 고급스럽지만 과시적이지 않고, 정보가 밀도 있지만 답답하지 않은 톤을 유지하세요.";
 
 export const coreColors = [
-  { name: "--primary", value: "215 45% 14%", preview: "hsl(215,45%,14%)" },
-  { name: "--primary-foreground", value: "210 40% 98%", preview: "hsl(210,40%,98%)" },
-  { name: "--accent", value: "187 55% 38%", preview: "hsl(187,55%,38%)" },
+  { name: "--primary", value: "262 47% 16%", preview: "hsl(262,47%,16%)" },
+  { name: "--primary-foreground", value: "262 60% 98%", preview: "hsl(262,60%,98%)" },
+  { name: "--accent", value: "262 75% 58%", preview: "hsl(262,75%,58%)" },
   { name: "--accent-foreground", value: "0 0% 100%", preview: "hsl(0,0%,100%)" },
-  { name: "--background", value: "220 20% 99%", preview: "hsl(220,20%,99%)" },
-  { name: "--foreground", value: "220 25% 10%", preview: "hsl(220,25%,10%)" },
+  { name: "--background", value: "262 30% 98.5%", preview: "hsl(262,30%,98.5%)" },
+  { name: "--foreground", value: "262 45% 10%", preview: "hsl(262,45%,10%)" },
 ];
 
 export const surfaceColors = [
-  { name: "--surface", value: "220 14% 97%", preview: "hsl(220,14%,97%)" },
-  { name: "--muted", value: "220 14% 96%", preview: "hsl(220,14%,96%)" },
-  { name: "--muted-foreground", value: "220 10% 46%", preview: "hsl(220,10%,46%)" },
-  { name: "--border", value: "220 13% 90%", preview: "hsl(220,13%,90%)" },
+  { name: "--surface", value: "262 20% 97%", preview: "hsl(262,20%,97%)" },
+  { name: "--muted", value: "262 15% 96%", preview: "hsl(262,15%,96%)" },
+  { name: "--muted-foreground", value: "262 10% 46%", preview: "hsl(262,10%,46%)" },
+  { name: "--border", value: "262 20% 90%", preview: "hsl(262,20%,90%)" },
   { name: "--card", value: "0 0% 100%", preview: "hsl(0,0%,100%)" },
   { name: "--destructive", value: "0 84% 60%", preview: "hsl(0,84%,60%)" },
 ];
 
 export const colorUsageRules = [
-  "Primary(딥 네이비)는 텍스트, 헤더 배경, 주요 버튼에 사용",
-  "Accent(틸)는 포인트 강조, 링크, 활성 상태, 보조 CTA에 사용",
-  "배경은 화이트~라이트그레이 계열로 섹션 간 미묘한 대비 제공",
+  "Primary(딥 퍼플)는 텍스트, 헤더 배경, 주요 버튼에 사용",
+  "Accent(연한 퍼플/라벤더)는 포인트 강조, 링크, 활성 상태, 보조 CTA에 사용",
+  "배경은 화이트~라이트퍼플 계열로 섹션 간 미묘한 대비 제공",
   "네온, 유치한 그라디언트, 과도한 컬러 조합 금지",
   "텍스트 대비비(WCAG AA 기준 4.5:1) 준수",
 ];

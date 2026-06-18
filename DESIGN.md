@@ -3,15 +3,15 @@ version: public-reference-v1
 name: consulting-compass
 description: "B2B 의사결정자를 위한 컨설팅 제작 기준서. 전문성, 방법론, 사례, 성과 증거를 조용하고 정보 밀도 있게 전달한다."
 colors:
-  primary: "hsl(215 45% 14%)"
-  secondary: "hsl(220 14% 95%)"
-  tertiary: "hsl(187 55% 38%)"
-  neutral: "hsl(220 14% 97%)"
-  background: "hsl(220 20% 99%)"
+  primary: "hsl(262 47% 16%)"
+  secondary: "hsl(262 25% 95%)"
+  tertiary: "hsl(262 75% 58%)"
+  neutral: "hsl(262 20% 97%)"
+  background: "hsl(262 30% 98.5%)"
   surface: "hsl(0 0% 100%)"
-  foreground: "hsl(220 25% 10%)"
-  muted: "hsl(220 10% 46%)"
-  accent: "hsl(187 55% 38%)"
+  foreground: "hsl(262 45% 10%)"
+  muted: "hsl(262 10% 46%)"
+  accent: "hsl(262 75% 58%)"
 typography:
   h1:
     fontFamily: "Plus Jakarta Sans"
@@ -77,7 +77,7 @@ B2B 의사결정자를 위한 컨설팅 제작 기준서. 전문성, 방법론, 
 
 Core visual rules:
 
-- Use near-black navy for authority and cyan-teal for controlled action/proof highlights.
+- Use deep royal purple for authority and vibrant lavender-purple for controlled action/proof highlights.
 - Motion is subtle and content-supporting only; use opacity/translate entrance, never layout-shifting effects.
 - B2B pages need service taxonomy, process, cases, team, proof, FAQ, and project inquiry CTA.
 
@@ -85,46 +85,46 @@ Core visual rules:
 
 Use semantic HSL tokens from `src/index.css` and Tailwind aliases from `tailwind.config.ts`. Do not hard-code unrelated one-off colors into pages.
 
-- Primary: `hsl(215 45% 14%)`
-- Secondary: `hsl(220 14% 95%)`
-- Tertiary: `hsl(187 55% 38%)`
-- Neutral: `hsl(220 14% 97%)`
-- Background: `hsl(220 20% 99%)`
+- Primary: `hsl(262 47% 16%)`
+- Secondary: `hsl(262 25% 95%)`
+- Tertiary: `hsl(262 75% 58%)`
+- Neutral: `hsl(262 20% 97%)`
+- Background: `hsl(262 30% 98.5%)`
 - Surface: `hsl(0 0% 100%)`
-- Foreground: `hsl(220 25% 10%)`
-- Muted text: `hsl(220 10% 46%)`
-- Accent: `hsl(187 55% 38%)`
+- Foreground: `hsl(262 45% 10%)`
+- Muted text: `hsl(262 10% 46%)`
+- Accent: `hsl(262 75% 58%)`
 
 ### Local CSS Variable Evidence
 
-- `background` = `220 20% 99%`
-- `foreground` = `220 25% 10%`
+- `background` = `262 30% 98.5%`
+- `foreground` = `262 45% 10%`
 - `card` = `0 0% 100%`
-- `card-foreground` = `220 25% 10%`
+- `card-foreground` = `262 45% 10%`
 - `popover` = `0 0% 100%`
-- `popover-foreground` = `220 25% 10%`
-- `primary` = `215 45% 14%`
-- `primary-foreground` = `210 40% 98%`
-- `secondary` = `220 14% 95%`
-- `secondary-foreground` = `220 25% 10%`
-- `muted` = `220 14% 96%`
-- `muted-foreground` = `220 10% 46%`
-- `accent` = `187 55% 38%`
+- `popover-foreground` = `262 45% 10%`
+- `primary` = `262 47% 16%`
+- `primary-foreground` = `262 60% 98%`
+- `secondary` = `262 25% 95%`
+- `secondary-foreground` = `262 45% 10%`
+- `muted` = `262 15% 96%`
+- `muted-foreground` = `262 10% 46%`
+- `accent` = `262 75% 58%`
 - `accent-foreground` = `0 0% 100%`
 - `destructive` = `0 84% 60%`
 - `destructive-foreground` = `210 40% 98%`
-- `border` = `220 13% 90%`
-- `input` = `220 13% 90%`
-- `ring` = `215 45% 14%`
+- `border` = `262 20% 90%`
+- `input` = `262 20% 90%`
+- `ring` = `262 75% 58%`
 - `radius` = `0.5rem`
-- `surface` = `220 14% 97%`
-- `surface-foreground` = `220 25% 10%`
-- `sidebar-background` = `215 45% 14%`
-- `sidebar-foreground` = `210 30% 85%`
-- `sidebar-primary` = `187 55% 48%`
+- `surface` = `262 20% 97%`
+- `surface-foreground` = `262 45% 10%`
+- `sidebar-background` = `262 45% 15%`
+- `sidebar-foreground` = `262 30% 85%`
+- `sidebar-primary` = `262 75% 58%`
 - `sidebar-primary-foreground` = `0 0% 100%`
-- `sidebar-accent` = `215 40% 20%`
-- `sidebar-accent-foreground` = `210 30% 90%`
+- `sidebar-accent: 262 40% 22%`
+- `sidebar-accent-foreground: 262 30% 95%`
 
 ## Typography
 

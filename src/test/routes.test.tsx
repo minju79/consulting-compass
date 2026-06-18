@@ -3,9 +3,8 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { routeMeta, getSortedRoutes } from "@/data/routeMeta";
+import { routeMeta, getSortedRoutes, getRouteMeta, fallbackMeta } from "@/data/routeMeta";
 import { applyPageMeta } from "@/hooks/usePageMeta";
-import { getRouteMeta } from "@/data/routeMeta";
 
 // Pages
 import Index from "@/pages/Index";
@@ -92,7 +91,7 @@ describe("page rendering", () => {
 
   it("renders SEO/GEO page", () => {
     renderPage(<SeoGeo />, "/seo-geo");
-    expect(screen.getByText(/SEO.*GEO/)).toBeInTheDocument();
+    expect(screen.getByText("SEO · GEO 가이드")).toBeInTheDocument();
   });
 
   it("renders checklist page", () => {
@@ -153,7 +152,6 @@ describe("meta tag application", () => {
   });
 
   it("sets noindex nofollow for 404", () => {
-    const { fallbackMeta } = require("@/data/routeMeta");
     applyPageMeta(fallbackMeta, "/404");
     const robots = document.querySelector('meta[name="robots"]');
     expect(robots?.getAttribute("content")).toBe("noindex, nofollow");
@@ -176,7 +174,6 @@ describe("meta tag application", () => {
     applyPageMeta(getRouteMeta("/"), "/");
     expect(document.querySelector('link[rel="canonical"]')).toBeTruthy();
     // Now apply 404
-    const { fallbackMeta } = require("@/data/routeMeta");
     applyPageMeta(fallbackMeta, "/404");
     expect(document.querySelector('link[rel="canonical"]')).toBeNull();
   });
