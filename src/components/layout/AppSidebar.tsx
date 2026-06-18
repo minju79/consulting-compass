@@ -1,6 +1,7 @@
 import {
   LayoutDashboard, Building2, Palette, Component, Users, FileText,
   PenTool, Search, CheckSquare, ClipboardList, Map, Settings, ShieldCheck,
+  Sparkles,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { getRoutesByGroup } from "@/data/routeMeta";
@@ -14,6 +15,7 @@ import {
 const iconMap: Record<string, React.ElementType> = {
   LayoutDashboard, Building2, Palette, Component, Users, FileText,
   PenTool, Search, CheckSquare, ClipboardList, Map, Settings, ShieldCheck,
+  Sparkles,
 };
 
 function NavGroup({ label, group, collapsed }: { label: string; group: "guide" | "tool"; collapsed: boolean }) {

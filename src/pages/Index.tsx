@@ -16,6 +16,7 @@ import {
   Target,
   Layers,
   Wrench,
+  Sparkles,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { industryConfig } from "@/data/industryConfig";
@@ -29,6 +30,7 @@ const quickNavItems = [
   { title: "콘텐츠 가이드", description: "증거 기반 카피라이팅 원칙, 문장 공식, CTA 라이브러리를 제공합니다.", icon: <PenTool className="h-5 w-5" />, href: "/content-guide" },
   { title: "SEO / GEO", description: "메타 태그, JSON-LD 코드 예시, URL 구조, AI 검색 최적화 전략.", icon: <Search className="h-5 w-5" />, href: "/seo-geo" },
   { title: "실무 체크리스트", description: "기획·디자인·UI·UX·콘텐츠·SEO·접근성·모바일·런칭 10개 영역 체크.", icon: <CheckSquare className="h-5 w-5" />, href: "/checklist" },
+  { title: "실전 사례: NADOO.AI", description: "부동산·소상공인 AI 자동화 컨설팅사 NADOO.AI의 홈페이지 기획 및 구조 분석 사례.", icon: <Sparkles className="h-5 w-5" />, href: "/showcase/nadoo-ai" },
 ];
 
 const toolNavItems = [

@@ -16,6 +16,7 @@ import ClientBrief from "./pages/ClientBrief";
 import SiteBlueprint from "./pages/SiteBlueprint";
 import ImplementationRules from "./pages/ImplementationRules";
 import ProofSystem from "./pages/ProofSystem";
+import NadooAiShowcase from "./pages/NadooAiShowcase";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ const App = () => (
           <Route path="/content-guide" element={<ContentGuide />} />
           <Route path="/seo-geo" element={<SeoGeo />} />
           <Route path="/checklist" element={<Checklist />} />
+          <Route path="/showcase/nadoo-ai" element={<NadooAiShowcase />} />
           <Route path="/client-brief" element={<ClientBrief />} />
           <Route path="/site-blueprint" element={<SiteBlueprint />} />
           <Route path="/implementation-rules" element={<ImplementationRules />} />
